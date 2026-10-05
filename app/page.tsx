@@ -44,8 +44,8 @@ async function Shop() {
         <span className="muted">{t.shopNote}</span>
       </div>
       <div className="grid">
-        {items.map((p) => (
-          <ProductCard key={p.slug} p={p} t={t} />
+        {items.map((p, i) => (
+          <ProductCard key={p.slug} p={p} t={t} eager={i < 4} />
         ))}
       </div>
     </section>

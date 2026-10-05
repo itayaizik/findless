@@ -9,6 +9,8 @@ export async function proxy(request: NextRequest) {
     to.pathname = "/auth/confirm";
     return NextResponse.redirect(to);
   }
+  const hasSession = request.cookies.getAll().some((c) => c.name.startsWith("sb-") && c.name.includes("auth-token"));
+  if (!hasSession) return NextResponse.next();
   let response = NextResponse.next({ request });
   const supabase = createServerClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, {
     cookies: {

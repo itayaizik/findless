@@ -13,13 +13,12 @@ export default function LangSwitch() {
       type="button"
       className="lang"
       lang={next}
-      aria-label={t.langSwitchLabel}
       onClick={() => {
         document.cookie = `${LANG_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`;
         router.refresh();
       }}
     >
-      {t.langSwitch}
+      {t.langSwitchLabel}
     </button>
   );
 }

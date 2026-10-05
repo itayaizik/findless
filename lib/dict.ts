@@ -81,6 +81,7 @@ const en = {
   checkEmail: "Almost there. Check your email to confirm your account.",
 
   account: "Account",
+  language: "Language",
   password: "Password",
   createAccount: "Create account",
   confirmFailed: "That confirmation link didn't work. Try logging in, or create the account again.",
@@ -183,6 +184,7 @@ const he: Dict = {
   checkEmail: "כמעט שם. בדקו את האימייל כדי לאשר את החשבון.",
 
   account: "החשבון שלי",
+  language: "שפה",
   password: "סיסמה",
   createAccount: "יצירת חשבון",
   confirmFailed: "קישור האישור לא עבד. נסו להתחבר, או צרו את החשבון מחדש.",

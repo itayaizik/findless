@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ProductCard from "@/components/ProductCard";
 import OrderForm from "@/components/OrderForm";
-import { images } from "@/lib/products";
 import { formatPrice, getCatalog, getShopAccess, getUser } from "@/lib/site";
 import { getT } from "@/lib/i18n";
 
@@ -18,7 +17,6 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
   const p = catalog.find((x) => x.slug === slug);
   if (!access.visible || !p) notFound();
 
-  const img = images(p);
   const others = catalog.filter((o) => o.slug !== p.slug).slice(0, 4);
   const soldOut = p.status === "sold_out";
 
@@ -30,6 +28,7 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
           <h1>
             {p.name} [{p.color}]
           </h1>
+          {p.description && <p className="desc">{p.description}</p>}
           <ul>
             {p.details.map((d) => (
               <li key={d}>{d}</li>
@@ -38,12 +37,16 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
         </div>
 
         <div className="gallery">
-          <div className="shot">
-            <img src={img.front} alt={`${p.name} ${p.color}, ${t.front}`} />
-          </div>
-          <div className="shot">
-            <img src={img.back} alt={`${p.name} ${p.color}, ${t.back}`} loading="lazy" />
-          </div>
+          {p.images.map((src, n) => (
+            <div className="shot" key={src}>
+              <img
+                src={src}
+                alt={`${p.name} ${p.color}, ${n === 0 ? t.front : n === 1 ? t.back : n + 1}`}
+                loading={n === 0 ? "eager" : "lazy"}
+                decoding="async"
+              />
+            </div>
+          ))}
         </div>
 
         <div className="buy">

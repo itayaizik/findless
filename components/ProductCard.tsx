@@ -1,16 +1,17 @@
 import Link from "next/link";
-import { images } from "@/lib/products";
 import { formatPrice, type CatalogItem } from "@/lib/site";
 import type { Dict } from "@/lib/dict";
 
-export default function ProductCard({ p, t }: { p: CatalogItem; t: Dict }) {
-  const img = images(p);
+export default function ProductCard({ p, t, eager }: { p: CatalogItem; t: Dict; eager?: boolean }) {
+  const [front, back] = p.images;
   const soldOut = p.status === "sold_out";
   return (
     <Link href={`/product/${p.slug}`} className={`card${soldOut ? " sold" : ""}`}>
       <div className="img">
-        <img className="front" src={img.front} alt={`${p.name} ${p.color}, ${t.front}`} loading="lazy" />
-        <img className="back" src={img.back} alt="" loading="lazy" aria-hidden="true" />
+        {front && (
+          <img className="front" src={front} alt={`${p.name} ${p.color}, ${t.front}`} loading={eager ? "eager" : "lazy"} decoding="async" />
+        )}
+        {back && <img className="back" src={back} alt="" loading="lazy" decoding="async" aria-hidden="true" />}
       </div>
       <div className="meta">
         <span className="code">{t.itemNo} {p.code}</span>

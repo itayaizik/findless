@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getProduct } from "@/lib/products";
 import { formatIsrael, getCatalog, getIsAdmin, getSettings, isoToIsraelLocal } from "@/lib/site";
 import { supabaseServer } from "@/lib/supabase/server";
-import { saveOrderStatus, saveProduct, saveSettings } from "./actions";
+import Link from "next/link";
+import { addProduct, saveOrderStatus, saveProduct, saveSettings } from "./actions";
 
 export const metadata: Metadata = { title: "Admin", robots: { index: false } };
 
@@ -65,8 +65,15 @@ export default async function Admin() {
           {catalog.map((p) => (
             <form key={p.slug} action={saveProduct} className="trow">
               <input type="hidden" name="slug" value={p.slug} />
-              <span>
-                {p.code} · {p.name} [{p.color}]
+              <span className="trow-item">
+                {p.images[0] ? <img src={p.images[0]} alt="" className="thumb" /> : <span className="thumb" />}
+                <span>
+                  {p.code} · {p.name} [{p.color}]
+                  <br />
+                  <Link href={`/admin/products/${p.slug}`} className="link">
+                    Edit details &amp; images
+                  </Link>
+                </span>
               </span>
               <label>
                 <span className="sr-only">Price for {p.name} {p.color}</span>
@@ -84,6 +91,19 @@ export default async function Admin() {
             </form>
           ))}
         </div>
+        <form action={addProduct} className="add-product">
+          <span>New product</span>
+          <label>
+            <span className="sr-only">Name</span>
+            <input name="name" required placeholder="Name, e.g. ZIP HOODIE" maxLength={80} />
+          </label>
+          <label>
+            <span className="sr-only">Color</span>
+            <input name="color" placeholder="Color, e.g. GREY" maxLength={80} />
+          </label>
+          <button className="btn small">Add</button>
+        </form>
+        <p className="hint">New products start hidden. Add images and a price, then set them to Available.</p>
       </section>
 
       <section aria-labelledby="orders-h">
@@ -95,7 +115,7 @@ export default async function Admin() {
         ) : (
           <div className="table">
             {orders.map((o) => {
-              const p = getProduct(o.product_slug);
+              const p = catalog.find((x) => x.slug === o.product_slug);
               return (
                 <form key={o.id} action={saveOrderStatus} className="trow order-row">
                   <input type="hidden" name="id" value={o.id} />

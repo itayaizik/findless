@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import AuthForms from "@/components/AuthForms";
+import LangSwitch from "@/components/LangSwitch";
 import { signOut } from "@/app/actions";
-import { getProduct } from "@/lib/products";
-import { formatIsrael, getUser } from "@/lib/site";
+import { formatIsrael, getCatalog, getUser } from "@/lib/site";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getT } from "@/lib/i18n";
 
@@ -24,11 +24,15 @@ export default async function Account({ searchParams }: PageProps<"/account">) {
         <h1>{t.account}</h1>
         {failed && <p className="err">{t.confirmFailed}</p>}
         <AuthForms />
+        <p className="muted acct-lang">
+          {t.language}: <LangSwitch />
+        </p>
       </section>
     );
   }
 
   const supabase = await supabaseServer();
+  const catalog = await getCatalog(true);
   const { data: orders } = await supabase
     .from("orders")
     .select("id, product_slug, size, status, price_ils, created_at")
@@ -43,7 +47,7 @@ export default async function Account({ searchParams }: PageProps<"/account">) {
       {orders && orders.length > 0 ? (
         <ul className="orders">
           {orders.map((o) => {
-            const p = getProduct(o.product_slug);
+            const p = catalog.find((x) => x.slug === o.product_slug);
             return (
               <li key={o.id}>
                 <span>#{o.id}</span>
@@ -59,6 +63,9 @@ export default async function Account({ searchParams }: PageProps<"/account">) {
       ) : (
         <p className="muted">{t.noOrders}</p>
       )}
+      <p className="muted acct-lang">
+        {t.language}: <LangSwitch />
+      </p>
       <form action={signOut}>
         <button className="link-btn">{t.logout}</button>
       </form>

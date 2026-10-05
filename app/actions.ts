@@ -4,11 +4,10 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { supabaseServer } from "@/lib/supabase/server";
-import { getProduct } from "@/lib/products";
+import { getCatalog } from "@/lib/site";
 import { getT } from "@/lib/i18n";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
 
 export type OrderState =
   | { ok: false; error?: string }
@@ -23,9 +22,9 @@ export async function placeOrder(_prev: OrderState, form: FormData): Promise<Ord
   const email = String(form.get("email") ?? "").trim().toLowerCase().slice(0, 254);
   const note = String(form.get("note") ?? "").trim().slice(0, 500);
 
-  const product = getProduct(slug);
+  const product = (await getCatalog()).find((p) => p.slug === slug);
   if (!product) return { ok: false, error: t.errNoItem };
-  if (!SIZES.includes(size)) return { ok: false, error: t.errSize };
+  if (!product.sizes.includes(size)) return { ok: false, error: t.errSize };
   if (!phone && !email) return { ok: false, error: t.errContact };
   if (email && !EMAIL_RE.test(email)) return { ok: false, error: t.errEmail };
   if (phone && phone.replace(/\D/g, "").length < 9) return { ok: false, error: t.errPhone };

@@ -1,18 +1,92 @@
 import { cache } from "react";
+import { cookies } from "next/headers";
+import { unstable_cache } from "next/cache";
 import { supabaseServer } from "./supabase/server";
-import { products as baseProducts, type Product } from "./products";
+import { supabasePublic } from "./supabase/public";
+import { products as baseProducts, defaultImages, type Product } from "./products";
 
 export type Mode = "waitlist" | "open";
 export type Status = "available" | "sold_out" | "hidden";
-export type CatalogItem = Product & { price: number | null; status: Status };
+export type CatalogItem = Product & {
+  price: number | null;
+  status: Status;
+  description: string;
+  images: string[];
+};
 
-export const getSettings = cache(async () => {
-  const supabase = await supabaseServer();
-  const { data } = await supabase.from("site_settings").select("mode, drop_at").eq("id", 1).single();
-  return { mode: (data?.mode ?? "waitlist") as Mode, dropAt: (data?.drop_at as string | null) ?? null };
+// Public data is cached across requests and refreshed when the admin saves (see app/admin/actions.ts).
+const loadSettings = unstable_cache(
+  async () => {
+    const { data } = await supabasePublic().from("site_settings").select("mode, drop_at").eq("id", 1).single();
+    return { mode: (data?.mode ?? "waitlist") as Mode, dropAt: (data?.drop_at as string | null) ?? null };
+  },
+  ["settings"],
+  { tags: ["settings"], revalidate: 300 },
+);
+
+export const getSettings = cache(() => loadSettings());
+
+type Row = {
+  slug: string;
+  price_ils: number | null;
+  status: Status | null;
+  sort: number | null;
+  name: string | null;
+  color: string | null;
+  code: string | null;
+  description: string | null;
+  details: string[] | null;
+  sizes: string[] | null;
+  images: string[] | null;
+};
+
+const loadCatalog = unstable_cache(
+  async (): Promise<(CatalogItem & { sort: number })[]> => {
+    const { data } = await supabasePublic()
+      .from("products")
+      .select("slug, price_ils, status, sort, name, color, code, description, details, sizes, images");
+    const rows = new Map(((data ?? []) as Row[]).map((r) => [r.slug, r]));
+    const known = new Set(baseProducts.map((p) => p.slug));
+    const fromCode = baseProducts.map((p, i) => merge(p, rows.get(p.slug), i));
+    const extra = ((data ?? []) as Row[])
+      .filter((r) => !known.has(r.slug) && r.name)
+      .map((r) =>
+        merge({ slug: r.slug, code: "", name: "", color: "", details: [], sizes: ["S", "M", "L", "XL"] }, r, 1000),
+      );
+    return [...fromCode, ...extra].sort((a, b) => a.sort - b.sort);
+  },
+  ["catalog"],
+  { tags: ["catalog"], revalidate: 300 },
+);
+
+function merge(p: Product, r: Row | undefined, i: number): CatalogItem & { sort: number } {
+  return {
+    ...p,
+    name: r?.name || p.name,
+    color: r?.color ?? p.color,
+    code: r?.code || p.code,
+    details: r?.details ?? p.details,
+    sizes: r?.sizes?.length ? r.sizes : p.sizes,
+    description: r?.description ?? "",
+    images: r?.images?.length ? r.images : defaultImages(p.slug),
+    price: r?.price_ils ?? null,
+    status: r?.status ?? "available",
+    sort: r?.sort ?? i,
+  };
+}
+
+export const getCatalog = cache(async (includeHidden = false): Promise<CatalogItem[]> => {
+  const all = await loadCatalog();
+  return all.filter((p) => includeHidden || p.status !== "hidden").map(({ sort: _sort, ...p }) => p);
 });
 
+// Skip the auth server round trip for visitors who aren't logged in.
+async function hasSession() {
+  return (await cookies()).getAll().some((c) => c.name.startsWith("sb-") && c.name.includes("auth-token"));
+}
+
 export const getUser = cache(async () => {
+  if (!(await hasSession())) return null;
   const supabase = await supabaseServer();
   const { data } = await supabase.auth.getUser();
   return data.user;
@@ -30,25 +104,6 @@ export const getIsAdmin = cache(async () => {
 export const getShopAccess = cache(async () => {
   const [{ mode }, admin] = await Promise.all([getSettings(), getIsAdmin()]);
   return { mode, admin, visible: mode === "open" || admin, preview: mode !== "open" && admin };
-});
-
-export const getCatalog = cache(async (includeHidden = false): Promise<CatalogItem[]> => {
-  const supabase = await supabaseServer();
-  const { data } = await supabase.from("products").select("slug, price_ils, status, sort");
-  const rows = new Map((data ?? []).map((r) => [r.slug as string, r]));
-  return baseProducts
-    .map((p, i) => {
-      const r = rows.get(p.slug);
-      return {
-        ...p,
-        price: (r?.price_ils as number | null) ?? null,
-        status: ((r?.status as Status) ?? "available") as Status,
-        sort: (r?.sort as number | undefined) ?? i,
-      };
-    })
-    .filter((p) => includeHidden || p.status !== "hidden")
-    .sort((a, b) => a.sort - b.sort)
-    .map(({ sort: _sort, ...p }) => p);
 });
 
 export function formatPrice(price: number | null) {

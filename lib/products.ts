@@ -126,9 +126,6 @@ export function getProduct(slug: string) {
   return products.find((p) => p.slug === slug);
 }
 
-export function images(p: Product) {
-  return {
-    front: `/products/${p.slug}-front.webp`,
-    back: `/products/${p.slug}-back.webp`,
-  };
+export function defaultImages(slug: string) {
+  return products.some((p) => p.slug === slug) ? [`/products/${slug}-front.webp`, `/products/${slug}-back.webp`] : [];
 }
