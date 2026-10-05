@@ -212,6 +212,8 @@ select option { background: var(--bg); }
 .btn.small { padding: 8px 12px; }
 .hint { color: var(--muted); text-transform: none; letter-spacing: 0.02em; }
 .err { color: var(--err); text-transform: none; }
+.preorder { border: 1px solid var(--fg); padding: 12px 14px; display: grid; gap: 4px; }
+.preorder p { text-transform: none; letter-spacing: 0.02em; color: var(--muted); }
 .order-done { border: 1px solid var(--fg); padding: 16px; display: grid; gap: 8px; }
 .order-done p { text-transform: none; letter-spacing: 0.02em; }
 .link-btn {

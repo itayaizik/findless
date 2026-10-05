@@ -3,6 +3,15 @@
 import { useActionState, useState } from "react";
 import { placeOrder, type OrderState } from "@/app/actions";
 
+function PreorderNote() {
+  return (
+    <div className="preorder">
+      <b>Preorder</b>
+      <p>Made after you order. Pay with Bit (or PayBox), we send you the link.</p>
+    </div>
+  );
+}
+
 export default function OrderForm({
   slug,
   sizes,
@@ -18,14 +27,16 @@ export default function OrderForm({
   if (state.ok) {
     return (
       <div className="order-done" role="status">
-        <b>Order #{state.id} received.</b>
-        <p>We&apos;ll send a Bit payment link to {state.contact} soon. Payment confirms your order.</p>
+        <b>Preorder #{state.id} received.</b>
+        <p>We&apos;ll send a Bit payment link to {state.contact} soon (PayBox if you prefer). Payment confirms your preorder.</p>
+        <p>This is a preorder: your piece is made after payment, we&apos;ll keep you posted on shipping.</p>
       </div>
     );
   }
 
   return (
     <form action={action} className="order">
+      <PreorderNote />
       <input type="hidden" name="slug" value={slug} />
       <fieldset>
         <legend>Size</legend>
@@ -56,9 +67,9 @@ export default function OrderForm({
         <input name="note" maxLength={500} />
       </label>
       <button type="submit" className="btn" disabled={pending}>
-        {pending ? "Sending..." : "Order"}
+        {pending ? "Sending..." : "Preorder"}
       </button>
-      <p className="hint">No payment here. We contact you with a Bit link to pay.</p>
+      <p className="hint">No payment here. We contact you with a Bit link (or PayBox) to pay.</p>
       {state.error && (
         <p className="err" role="alert">
           {state.error}

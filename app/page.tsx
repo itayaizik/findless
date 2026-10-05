@@ -40,7 +40,7 @@ async function Shop() {
     <section id="shop" aria-label="Shop">
       <div className="section-head">
         <span>Drop 001 · {items.length} items</span>
-        <span className="muted">Order now, pay with Bit</span>
+        <span className="muted">Preorder · pay with Bit or PayBox</span>
       </div>
       <div className="grid">
         {items.map((p) => (
