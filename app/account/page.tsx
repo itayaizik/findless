@@ -4,25 +4,25 @@ import { signOut } from "@/app/actions";
 import { getProduct } from "@/lib/products";
 import { formatIsrael, getUser } from "@/lib/site";
 import { supabaseServer } from "@/lib/supabase/server";
+import { getT } from "@/lib/i18n";
 
 export const metadata: Metadata = { title: "Account" };
 
-const STATUS: Record<string, string> = {
-  new: "Received, waiting for Bit link",
-  contacted: "Bit link sent",
-  paid: "Paid",
-  shipped: "On the way",
-  cancelled: "Cancelled",
-};
-
 export default async function Account({ searchParams }: PageProps<"/account">) {
-  const user = await getUser();
+  const [user, { t }] = await Promise.all([getUser(), getT()]);
+  const STATUS: Record<string, string> = {
+    new: t.stNew,
+    contacted: t.stContacted,
+    paid: t.stPaid,
+    shipped: t.stShipped,
+    cancelled: t.stCancelled,
+  };
   const failed = (await searchParams).confirm === "failed";
   if (!user) {
     return (
       <section className="narrow">
-        <h1>Account</h1>
-        {failed && <p className="err">That confirmation link didn&apos;t work. Try logging in, or create the account again.</p>}
+        <h1>{t.account}</h1>
+        {failed && <p className="err">{t.confirmFailed}</p>}
         <AuthForms />
       </section>
     );
@@ -37,9 +37,9 @@ export default async function Account({ searchParams }: PageProps<"/account">) {
 
   return (
     <section className="narrow">
-      <h1>Account</h1>
+      <h1>{t.account}</h1>
       <p className="muted lower">{user.email}</p>
-      <h2>Your orders</h2>
+      <h2>{t.yourOrders}</h2>
       {orders && orders.length > 0 ? (
         <ul className="orders">
           {orders.map((o) => {
@@ -57,10 +57,10 @@ export default async function Account({ searchParams }: PageProps<"/account">) {
           })}
         </ul>
       ) : (
-        <p className="muted">No orders yet.</p>
+        <p className="muted">{t.noOrders}</p>
       )}
       <form action={signOut}>
-        <button className="link-btn">Log out</button>
+        <button className="link-btn">{t.logout}</button>
       </form>
     </section>
   );

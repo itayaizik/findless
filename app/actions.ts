@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getProduct } from "@/lib/products";
+import { getT } from "@/lib/i18n";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
@@ -14,6 +15,7 @@ export type OrderState =
   | { ok: true; id: number; contact: string };
 
 export async function placeOrder(_prev: OrderState, form: FormData): Promise<OrderState> {
+  const { t } = await getT();
   const slug = String(form.get("slug") ?? "");
   const size = String(form.get("size") ?? "");
   const name = String(form.get("name") ?? "").trim().slice(0, 80);
@@ -22,11 +24,11 @@ export async function placeOrder(_prev: OrderState, form: FormData): Promise<Ord
   const note = String(form.get("note") ?? "").trim().slice(0, 500);
 
   const product = getProduct(slug);
-  if (!product) return { ok: false, error: "This item doesn't exist." };
-  if (!SIZES.includes(size)) return { ok: false, error: "Pick a size." };
-  if (!phone && !email) return { ok: false, error: "Leave a phone number or an email so we can reach you." };
-  if (email && !EMAIL_RE.test(email)) return { ok: false, error: "That email doesn't look right." };
-  if (phone && phone.replace(/\D/g, "").length < 9) return { ok: false, error: "That phone number looks too short." };
+  if (!product) return { ok: false, error: t.errNoItem };
+  if (!SIZES.includes(size)) return { ok: false, error: t.errSize };
+  if (!phone && !email) return { ok: false, error: t.errContact };
+  if (email && !EMAIL_RE.test(email)) return { ok: false, error: t.errEmail };
+  if (phone && phone.replace(/\D/g, "").length < 9) return { ok: false, error: t.errPhone };
 
   const supabase = await supabaseServer();
   const { data, error } = await supabase.rpc("place_order", {
@@ -38,10 +40,10 @@ export async function placeOrder(_prev: OrderState, form: FormData): Promise<Ord
     p_note: note,
   });
   if (error) {
-    if (error.message.includes("store_closed")) return { ok: false, error: "Orders aren't open yet." };
-    if (error.message.includes("not_available")) return { ok: false, error: "Sorry, this item is sold out." };
+    if (error.message.includes("store_closed")) return { ok: false, error: t.errClosed };
+    if (error.message.includes("not_available")) return { ok: false, error: t.errSoldOut };
     console.error("place_order failed", error);
-    return { ok: false, error: "Something went wrong. Try again." };
+    return { ok: false, error: t.errGeneric };
   }
 
   const id = Number(data);
@@ -73,19 +75,21 @@ async function notifyNewOrder(id: number, item: string, name: string, phone: str
 export type AuthState = { error?: string; message?: string };
 
 export async function signIn(_prev: AuthState, form: FormData): Promise<AuthState> {
+  const { t } = await getT();
   const email = String(form.get("email") ?? "").trim().toLowerCase();
   const password = String(form.get("password") ?? "");
   const supabase = await supabaseServer();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return { error: "Wrong email or password." };
+  if (error) return { error: t.errLogin };
   redirect("/account");
 }
 
 export async function signUp(_prev: AuthState, form: FormData): Promise<AuthState> {
+  const { t } = await getT();
   const email = String(form.get("email") ?? "").trim().toLowerCase();
   const password = String(form.get("password") ?? "");
-  if (!EMAIL_RE.test(email)) return { error: "That email doesn't look right." };
-  if (password.length < 8) return { error: "Password needs at least 8 characters." };
+  if (!EMAIL_RE.test(email)) return { error: t.errEmail };
+  if (password.length < 8) return { error: t.errPassword };
   const supabase = await supabaseServer();
   const h = await headers();
   const origin = h.get("origin") ?? `https://${h.get("host")}`;
@@ -95,11 +99,11 @@ export async function signUp(_prev: AuthState, form: FormData): Promise<AuthStat
     options: { emailRedirectTo: `${origin}/auth/confirm` },
   });
   if (error) {
-    if (error.message.toLowerCase().includes("registered")) return { error: "This email already has an account. Log in instead." };
+    if (error.message.toLowerCase().includes("registered")) return { error: t.errExists };
     console.error("signUp failed", error);
-    return { error: "Couldn't create the account. Try again." };
+    return { error: t.errSignup };
   }
-  if (!data.session) return { message: "Almost there. Check your email to confirm your account." };
+  if (!data.session) return { message: t.checkEmail };
   redirect("/account");
 }
 

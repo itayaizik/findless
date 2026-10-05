@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { Lockup } from "./logos";
+import LangSwitch from "./LangSwitch";
 import { getShopAccess, getUser } from "@/lib/site";
+import { getT } from "@/lib/i18n";
 
 export default async function Header() {
-  const [access, user] = await Promise.all([getShopAccess(), getUser()]);
+  const [access, user, { t }] = await Promise.all([getShopAccess(), getUser(), getT()]);
   return (
     <>
       {access.preview && (
         <div className="preview-bar" role="status">
-          Preview · site is in waitlist mode · only admins see the shop
+          {t.previewBar}
         </div>
       )}
       <header className="header">
@@ -16,10 +18,11 @@ export default async function Header() {
           <Lockup />
         </Link>
         <nav aria-label="Main">
-          {access.visible && <Link href="/#shop">Shop</Link>}
-          <Link href="/about">About</Link>
-          <Link href="/account">{user ? "Account" : "Log in"}</Link>
-          {access.admin && <Link href="/admin">Admin</Link>}
+          {access.visible && <Link href="/#shop">{t.navShop}</Link>}
+          <Link href="/about">{t.navAbout}</Link>
+          <Link href="/account">{user ? t.navAccount : t.navLogin}</Link>
+          {access.admin && <Link href="/admin">{t.navAdmin}</Link>}
+          <LangSwitch />
         </nav>
       </header>
     </>

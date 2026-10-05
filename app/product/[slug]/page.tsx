@@ -4,6 +4,7 @@ import ProductCard from "@/components/ProductCard";
 import OrderForm from "@/components/OrderForm";
 import { images } from "@/lib/products";
 import { formatPrice, getCatalog, getShopAccess, getUser } from "@/lib/site";
+import { getT } from "@/lib/i18n";
 
 export async function generateMetadata({ params }: PageProps<"/product/[slug]">): Promise<Metadata> {
   const { slug } = await params;
@@ -13,7 +14,7 @@ export async function generateMetadata({ params }: PageProps<"/product/[slug]">)
 
 export default async function ProductPage({ params }: PageProps<"/product/[slug]">) {
   const { slug } = await params;
-  const [access, catalog, user] = await Promise.all([getShopAccess(), getCatalog(), getUser()]);
+  const [access, catalog, user, { t }] = await Promise.all([getShopAccess(), getCatalog(), getUser(), getT()]);
   const p = catalog.find((x) => x.slug === slug);
   if (!access.visible || !p) notFound();
 
@@ -25,7 +26,7 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
     <>
       <section className="pdp">
         <div className="info">
-          <span className="muted">Item no. {p.code}</span>
+          <span className="muted">{t.itemNo} {p.code}</span>
           <h1>
             {p.name} [{p.color}]
           </h1>
@@ -38,30 +39,30 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
 
         <div className="gallery">
           <div className="shot">
-            <img src={img.front} alt={`${p.name} ${p.color}, front`} />
+            <img src={img.front} alt={`${p.name} ${p.color}, ${t.front}`} />
           </div>
           <div className="shot">
-            <img src={img.back} alt={`${p.name} ${p.color}, back`} loading="lazy" />
+            <img src={img.back} alt={`${p.name} ${p.color}, ${t.back}`} loading="lazy" />
           </div>
         </div>
 
         <div className="buy">
-          <span className="price">{soldOut ? "Sold out" : formatPrice(p.price)}</span>
+          <span className="price">{soldOut ? t.soldOut : formatPrice(p.price)}</span>
           {soldOut ? (
-            <p className="muted">This one is gone. Maybe it comes back.</p>
+            <p className="muted">{t.soldOutMsg}</p>
           ) : (
             <OrderForm slug={p.slug} sizes={p.sizes} email={user?.email} />
           )}
         </div>
       </section>
 
-      <section className="also" aria-label="You may also like">
+      <section className="also" aria-label={t.alsoLike}>
         <div className="section-head" style={{ paddingLeft: 0, paddingRight: 0 }}>
-          <span>You may also like</span>
+          <span>{t.alsoLike}</span>
         </div>
         <div className="grid">
           {others.map((o) => (
-            <ProductCard key={o.slug} p={o} />
+            <ProductCard key={o.slug} p={o} t={t} />
           ))}
         </div>
       </section>

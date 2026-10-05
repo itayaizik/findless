@@ -9,6 +9,8 @@ import "./a11y.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import A11yWidget from "@/components/A11yWidget";
+import { LangProvider } from "@/components/I18n";
+import { getT } from "@/lib/i18n";
 
 export const metadata: Metadata = {
   title: { default: "FINDLESS", template: "%s · FINDLESS" },
@@ -19,12 +21,14 @@ export const viewport: Viewport = {
   themeColor: "#0a0a0a",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const { lang, t } = await getT();
   return (
-    <html lang="en">
+    <html lang={lang} dir={lang === "he" ? "rtl" : "ltr"}>
       <body>
+        <LangProvider lang={lang}>
         <a href="#main" className="skip">
-          Skip to content
+          {t.skip}
         </a>
         <div id="site">
           <Header />
@@ -34,6 +38,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <Footer />
         </div>
         <A11yWidget />
+        </LangProvider>
       </body>
     </html>
   );

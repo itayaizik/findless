@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
 import { Stamp } from "@/components/logos";
+import { getT } from "@/lib/i18n";
 
 export const metadata: Metadata = { title: "About" };
 
-export default function About() {
+export default async function About() {
+  const { t } = await getT();
   return (
     <section className="page">
       <Stamp className="stamp" />
-      <h1>Lost &amp; found</h1>
-      <p>We couldn&apos;t find clothes we liked, so we made them.</p>
-      <p>Everything is preorder: pick your size, leave a phone or email, and we send you a link to pay with Bit (or PayBox).</p>
+      <h1 lang="en">{t.aboutTitle}</h1>
+      <p>{t.aboutP1}</p>
+      <p>{t.aboutP2}</p>
     </section>
   );
 }

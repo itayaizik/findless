@@ -149,7 +149,7 @@ export default function A11yWidget() {
   const side = position === "right" ? "right" : "left";
 
   return (
-    <div className={`a11y a11y-${side}${big ? " a11y-big" : ""}`} >
+    <div className={`a11y a11y-${side}${big ? " a11y-big" : ""}`} dir="ltr" lang="en">
       {position !== "hidden" && !open && (
         <button
           type="button"

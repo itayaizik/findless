@@ -1,16 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { useT } from "./I18n";
 
 type State = { kind: "idle" | "sending" | "done" | "error"; msg?: string };
 
 export default function SignupForm({
   source = "home",
-  cta = "Notify me",
+  cta,
 }: {
   source?: string;
   cta?: string;
 }) {
+  const { t } = useT();
   const [state, setState] = useState<State>({ kind: "idle" });
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -28,10 +30,10 @@ export default function SignupForm({
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Something went wrong");
+      if (!res.ok) throw new Error(data.error || t.errGeneric);
       setState({
         kind: "done",
-        msg: data.already ? "You're already on the list." : "You're on the list. First drop soon.",
+        msg: data.already ? t.signupAlready : t.signupDone,
       });
     } catch (err) {
       setState({ kind: "error", msg: (err as Error).message });
@@ -49,17 +51,17 @@ export default function SignupForm({
               type="email"
               name="email"
               required
-              placeholder="Your email"
-              aria-label="Email"
+              placeholder={t.signupPlaceholder}
+              aria-label={t.email}
               autoComplete="email"
             />
             <input className="hp" type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" />
             <button type="submit" disabled={state.kind === "sending"}>
-              {state.kind === "sending" ? "..." : cta}
+              {state.kind === "sending" ? "..." : (cta ?? t.signupCta)}
             </button>
           </form>
           <p className={`msg${state.kind === "error" ? " err" : ""}`}>
-            {state.kind === "error" ? state.msg : "Join the list. Only drops, no spam."}
+            {state.kind === "error" ? state.msg : t.signupHint}
           </p>
         </>
       )}
