@@ -9,9 +9,7 @@ export default function Footer() {
       <nav aria-label="Footer">
         <Link href="/about">About</Link>
         <A11yOpen />
-        <Link href="/accessibility" lang="he">
-          הצהרת נגישות
-        </Link>
+        <Link href="/accessibility">Accessibility statement</Link>
       </nav>
     </footer>
   );

@@ -49,19 +49,19 @@ const DEFAULTS: Prefs = {
 
 // [key, label, icon, number of levels, level names]
 const TOOLS: [keyof Prefs, string, LucideIcon, number, string[]?][] = [
-  ["contrast", "ניגודיות", Contrast, 3, ["ניגודיות גבוהה", "רקע בהיר", "צבעים הפוכים"]],
-  ["links", "הדגשת קישורים", Link2, 1],
-  ["text", "טקסט גדול", ALargeSmall, 3],
-  ["spacing", "ריווח טקסט", MoveHorizontal, 3],
-  ["motion", "ביטול הנפשות", Pause, 1],
-  ["images", "הסתרת תמונות", ImageOff, 1],
-  ["dyslexia", "תמיכה בדיסלקציה", BookOpen, 1],
-  ["cursor", "סמן גדול", MousePointer2, 2, ["סמן גדול בהיר", "סמן גדול כהה"]],
-  ["titles", "תיאורים", MessageSquareText, 1],
-  ["lh", "גובה שורה", UnfoldVertical, 3],
-  ["align", "יישור טקסט", AlignJustify, 3, ["יישור לשמאל", "יישור למרכז", "יישור לימין"]],
-  ["sat", "רוויה", Droplet, 3, ["רוויה נמוכה", "רוויה גבוהה", "שחור לבן"]],
-  ["headings", "הדגשת כותרות", Heading, 1],
+  ["contrast", "Contrast", Contrast, 3, ["High contrast", "Light mode", "Invert colors"]],
+  ["links", "Highlight links", Link2, 1],
+  ["text", "Bigger text", ALargeSmall, 3],
+  ["spacing", "Text spacing", MoveHorizontal, 3],
+  ["motion", "Stop animations", Pause, 1],
+  ["images", "Hide images", ImageOff, 1],
+  ["dyslexia", "Dyslexia friendly", BookOpen, 1],
+  ["cursor", "Big cursor", MousePointer2, 2, ["Big cursor, light", "Big cursor, dark"]],
+  ["titles", "Tooltips", MessageSquareText, 1],
+  ["lh", "Line height", UnfoldVertical, 3],
+  ["align", "Text align", AlignJustify, 3, ["Align left", "Align center", "Align right"]],
+  ["sat", "Saturation", Droplet, 3, ["Low saturation", "High saturation", "Black & white"]],
+  ["headings", "Highlight headings", Heading, 1],
 ];
 
 const KEY = "fl-a11y";
@@ -149,17 +149,17 @@ export default function A11yWidget() {
   const side = position === "right" ? "right" : "left";
 
   return (
-    <div className={`a11y a11y-${side}${big ? " a11y-big" : ""}`} lang="he" dir="rtl">
+    <div className={`a11y a11y-${side}${big ? " a11y-big" : ""}`} >
       {position !== "hidden" && !open && (
         <button
           type="button"
           className="a11y-fab"
           onClick={toggle}
-          aria-label="פתיחת תפריט נגישות (Ctrl+U)"
+          aria-label="Open accessibility menu (Ctrl+U)"
           aria-expanded={open}
           aria-controls="a11y-panel"
         >
-          <Accessibility size={26} aria-hidden="true" />
+          <Accessibility size={20} aria-hidden="true" />
         </button>
       )}
 
@@ -167,15 +167,15 @@ export default function A11yWidget() {
         <div id="a11y-panel" className="a11y-panel" role="dialog" aria-modal="false" aria-labelledby="a11y-title">
           <div className="a11y-head">
             <h2 id="a11y-title">
-              <Accessibility size={20} aria-hidden="true" /> תפריט נגישות <small dir="ltr">(Ctrl+U)</small>
+              <Accessibility size={20} aria-hidden="true" /> Accessibility <small>Ctrl+U</small>
             </h2>
-            <button type="button" className="a11y-x" onClick={() => setOpen(false)} aria-label="סגירת תפריט הנגישות" autoFocus>
+            <button type="button" className="a11y-x" onClick={() => setOpen(false)} aria-label="Close accessibility menu" autoFocus>
               <X size={20} aria-hidden="true" />
             </button>
           </div>
 
           <label className="a11y-big-toggle">
-            <span>יישומון גדול</span>
+            <span>Large menu</span>
             <input type="checkbox" checked={big} onChange={(e) => setBig(e.target.checked)} />
           </label>
 
@@ -190,7 +190,7 @@ export default function A11yWidget() {
                   className={`a11y-card${v ? " on" : ""}`}
                   onClick={() => bump(k, levels)}
                   aria-pressed={v > 0}
-                  aria-label={levels > 1 ? `${label}: ${v ? `רמה ${v} מתוך ${levels}` : "כבוי"}` : label}
+                  aria-label={levels > 1 ? `${label}: ${v ? `level ${v} of ${levels}` : "off"}` : label}
                 >
                   <Icon size={22} aria-hidden="true" />
                   <span>{current}</span>
@@ -207,17 +207,17 @@ export default function A11yWidget() {
           </div>
 
           <button type="button" className="a11y-reset" onClick={() => setPrefs(DEFAULTS)}>
-            <RotateCcw size={18} aria-hidden="true" /> איפוס כל הגדרות הנגישות
+            <RotateCcw size={18} aria-hidden="true" /> Reset all
           </button>
 
           <fieldset className="a11y-pos">
-            <legend>מיקום הכפתור</legend>
+            <legend>Button position</legend>
             <div>
               {(
                 [
-                  ["left", "שמאל", PanelLeft],
-                  ["right", "ימין", PanelRight],
-                  ["hidden", "הסתרה", EyeOff],
+                  ["left", "Left", PanelLeft],
+                  ["right", "Right", PanelRight],
+                  ["hidden", "Hide", EyeOff],
                 ] as const
               ).map(([val, label, Icon]) => (
                 <button
@@ -231,14 +231,14 @@ export default function A11yWidget() {
                 </button>
               ))}
             </div>
-            <p>הסתרה מסתירה את הכפתור. אפשר לפתוח את התפריט תמיד עם Ctrl+U או מהקישור בתחתית העמוד.</p>
+            <p>Hidden: open the menu anytime with Ctrl+U or from the link at the bottom of the page.</p>
           </fieldset>
 
           <div className="a11y-foot">
             <Link href="/accessibility" onClick={() => setOpen(false)}>
-              הצהרת נגישות
+              Accessibility statement
             </Link>
-            <span>ההגדרות נשמרות בדפדפן הזה.</span>
+            <span>Saved in this browser.</span>
           </div>
         </div>
       )}

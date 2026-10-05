@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getProduct } from "@/lib/products";
@@ -86,7 +87,13 @@ export async function signUp(_prev: AuthState, form: FormData): Promise<AuthStat
   if (!EMAIL_RE.test(email)) return { error: "That email doesn't look right." };
   if (password.length < 8) return { error: "Password needs at least 8 characters." };
   const supabase = await supabaseServer();
-  const { data, error } = await supabase.auth.signUp({ email, password });
+  const h = await headers();
+  const origin = h.get("origin") ?? `https://${h.get("host")}`;
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { emailRedirectTo: `${origin}/auth/confirm` },
+  });
   if (error) {
     if (error.message.toLowerCase().includes("registered")) return { error: "This email already has an account. Log in instead." };
     console.error("signUp failed", error);

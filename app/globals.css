@@ -283,12 +283,11 @@ select option { background: var(--bg); }
 /* hebrew text pages */
 .prose {
   max-width: 720px; margin: 0 auto; padding: 48px var(--gutter) 96px;
-  font-family: "Rubik", var(--font);
-  text-transform: none; letter-spacing: 0; font-size: 0.9375rem; line-height: 1.8;
+  text-transform: none; letter-spacing: 0.01em; font-size: 0.8125rem; line-height: 1.8;
   display: grid; gap: 14px;
 }
-.prose h1 { font-size: 1.5rem; }
-.prose h2 { font-size: 1.0625rem; margin-top: 14px; }
+.prose h1 { font-size: 1.25rem; text-transform: uppercase; }
+.prose h2 { font-size: 0.875rem; margin-top: 14px; text-transform: uppercase; }
 .prose ul { padding-inline-start: 20px; display: grid; gap: 4px; }
 .prose a { border-bottom: 1px solid currentColor; }
 
@@ -300,8 +299,8 @@ select option { background: var(--bg); }
   color: var(--muted); font-size: 0.6875rem;
 }
 .footer nav { display: flex; gap: 20px; align-items: center; }
-.footer .link-btn { border: 0; text-transform: none; font-family: "Rubik", var(--font); }
-.footer [lang="he"] { font-family: "Rubik", var(--font); }
+
+
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }

@@ -15,12 +15,14 @@ const STATUS: Record<string, string> = {
   cancelled: "Cancelled",
 };
 
-export default async function Account() {
+export default async function Account({ searchParams }: PageProps<"/account">) {
   const user = await getUser();
+  const failed = (await searchParams).confirm === "failed";
   if (!user) {
     return (
       <section className="narrow">
         <h1>Account</h1>
+        {failed && <p className="err">That confirmation link didn&apos;t work. Try logging in, or create the account again.</p>}
         <AuthForms />
       </section>
     );

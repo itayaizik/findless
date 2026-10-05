@@ -3,6 +3,12 @@ import { NextResponse, type NextRequest } from "next/server";
 
 // Keeps the Supabase login session fresh on every page request.
 export async function proxy(request: NextRequest) {
+  // Confirmation links that land on the home page get finished at /auth/confirm.
+  if (request.nextUrl.pathname === "/" && request.nextUrl.searchParams.has("code")) {
+    const to = request.nextUrl.clone();
+    to.pathname = "/auth/confirm";
+    return NextResponse.redirect(to);
+  }
   let response = NextResponse.next({ request });
   const supabase = createServerClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, {
     cookies: {
