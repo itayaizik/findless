@@ -91,8 +91,7 @@ export async function saveProductFull(form: FormData) {
   }
   const { error } = await supabase
     .from("products")
-    .upsert({
-      slug,
+    .update({
       name: clean(form.get("name"), 80).toUpperCase() || null,
       color: clean(form.get("color"), 80).toUpperCase(),
       code: clean(form.get("code"), 20).toUpperCase() || null,
@@ -103,7 +102,8 @@ export async function saveProductFull(form: FormData) {
       price_ils: parsePrice(form.get("price")),
       status,
       updated_at: new Date().toISOString(),
-    });
+    })
+    .eq("slug", slug);
   if (error) throw new Error(error.message);
   refresh();
   redirect("/admin?saved=" + encodeURIComponent(slug) + "#products-h");
