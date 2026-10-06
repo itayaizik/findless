@@ -73,6 +73,13 @@ export default async function Admin() {
       <section aria-labelledby="products-h">
         <h2 id="products-h">Products</h2>
         <div className="table">
+          <div className="trow thead" aria-hidden="true">
+            <span>Item</span>
+            <span>Price ₪</span>
+            <span>Stock left</span>
+            <span>Status</span>
+            <span />
+          </div>
           {catalog.map((p) => (
             <form key={p.slug} action={saveProduct} className="trow">
               <input type="hidden" name="slug" value={p.slug} />
@@ -89,6 +96,10 @@ export default async function Admin() {
               <label>
                 <span className="sr-only">Price for {p.name} {p.color}</span>
                 <input name="price" type="number" min={0} step={1} placeholder="₪" defaultValue={p.price ?? ""} />
+              </label>
+              <label>
+                <span className="sr-only">Stock left for {p.name} {p.color} (empty = no limit)</span>
+                <input name="stock" type="number" min={0} step={1} placeholder="Stock ∞" defaultValue={p.stock ?? ""} />
               </label>
               <label>
                 <span className="sr-only">Status for {p.name} {p.color}</span>

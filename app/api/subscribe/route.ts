@@ -1,3 +1,5 @@
+import { hitRate } from "@/lib/rate";
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 function json(body: unknown, status = 200) {
@@ -16,6 +18,9 @@ export async function POST(req: Request) {
   if (email.length > 254 || !EMAIL_RE.test(email)) {
     return json({ error: "That email doesn't look right." }, 400);
   }
+
+  const rate = await hitRate("subscribe");
+  if (rate !== "ok") return json({ error: "Too many tries. Wait a bit and try again." }, 429);
 
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_ANON_KEY;
@@ -43,11 +48,12 @@ export async function POST(req: Request) {
   return json({ ok: true });
 }
 
-// Sends only once a verified sending domain is set up (RESEND_API_KEY + EMAIL_FROM).
+// Sends only once a verified sending domain is set up. The resend.dev test sender can only
+// reach the account owner, so customer emails wait for findless.co.il.
 async function sendWelcome(to: string) {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.EMAIL_FROM;
-  if (!apiKey || !from) return;
+  if (!apiKey || !from || from.includes("resend.dev")) return;
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",

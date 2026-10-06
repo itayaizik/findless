@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ProductCard from "@/components/ProductCard";
 import OrderForm from "@/components/OrderForm";
-import { formatPrice, getDrop, getShopAccess, getUser } from "@/lib/site";
-import { getT } from "@/lib/i18n";
+import { formatPrice, getDrop, getShopAccess, getUser, isSoldOut } from "@/lib/site";
+import { fill, getT } from "@/lib/i18n";
+import SizeChart from "@/components/SizeChart";
 
 export async function generateMetadata({
   params,
@@ -27,7 +28,7 @@ export default async function ProductPage({
   if (!access.visible || !p) notFound();
 
   const others = catalog.filter((o) => o.slug !== p.slug).slice(0, 4);
-  const soldOut = p.status === "sold_out";
+  const soldOut = isSoldOut(p);
 
   return (
     <>
@@ -45,6 +46,7 @@ export default async function ProductPage({
               <li key={d}>{d}</li>
             ))}
           </ul>
+          {p.sizeChart && <SizeChart chart={p.sizeChart} sizes={p.sizes} t={t} />}
         </div>
 
         <div className="gallery">
@@ -63,6 +65,7 @@ export default async function ProductPage({
         <div className="buy">
           <span className="price">
             {soldOut ? t.soldOut : formatPrice(p.price)}
+            {!soldOut && p.stock != null && <span className="stock">{fill(t.stockLeft, { n: p.stock })}</span>}
           </span>
           {soldOut ? (
             <p className="muted">{t.soldOutMsg}</p>

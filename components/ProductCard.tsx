@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { formatPrice, type CatalogItem } from "@/lib/site";
+import { formatPrice, isSoldOut, type CatalogItem } from "@/lib/site";
 import type { Dict } from "@/lib/dict";
 
 export default function ProductCard({ p, t, eager }: { p: CatalogItem; t: Dict; eager?: boolean }) {
   const [front, back] = p.images;
-  const soldOut = p.status === "sold_out";
+  const soldOut = isSoldOut(p);
   return (
     <Link href={`/product/${p.slug}`} className={`card${soldOut ? " sold" : ""}`}>
       <div className="img">

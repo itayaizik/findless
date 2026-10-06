@@ -254,7 +254,7 @@ select option { background: var(--bg); }
 .table { display: grid; border-top: 1px solid var(--line); }
 .trow {
   display: grid; gap: 10px; align-items: center;
-  grid-template-columns: 1fr 100px 130px 70px;
+  grid-template-columns: 1fr 90px 90px 130px 70px;
   padding: 10px 0; border-bottom: 1px solid var(--line);
 }
 .trow input[type="number"] { width: 100%; padding: 8px; }
@@ -357,3 +357,15 @@ select option { background: var(--bg); }
 /* single product drop */
 .grid.single { grid-template-columns: minmax(0, 560px); justify-content: center; }
 .grid.single .meta { font-size: 0.8125rem; }
+
+/* stock + size chart */
+.price .stock { margin-inline-start: 12px; color: var(--muted); font-weight: 400; font-size: 0.75rem; }
+.size-chart { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
+.size-chart summary { cursor: pointer; list-style: none; text-decoration: underline; text-underline-offset: 3px; }
+.size-chart summary::-webkit-details-marker { display: none; }
+.size-chart table { margin-top: 12px; border-collapse: collapse; width: 100%; max-width: 320px; font-size: 0.75rem; }
+.size-chart th, .size-chart td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: center; font-weight: 400; }
+.size-chart tbody th { text-align: start; color: var(--muted); text-transform: none; letter-spacing: 0.02em; white-space: nowrap; }
+.size-chart p { margin-top: 8px; text-transform: none; letter-spacing: 0.02em; }
+.trow.thead { color: var(--muted); font-size: 0.625rem; padding: 6px 0; }
+@media (max-width: 700px) { .trow.thead { display: none; } }

@@ -44,11 +44,12 @@ export async function saveProduct(form: FormData) {
   const supabase = await adminClient();
   const slug = String(form.get("slug"));
   const price_ils = parsePrice(form.get("price"));
+  const stock = parsePrice(form.get("stock"));
   const status = String(form.get("status"));
   if (!STATUSES.includes(status)) throw new Error("Bad input");
   const { error } = await supabase
     .from("products")
-    .update({ price_ils, status, updated_at: new Date().toISOString() })
+    .update({ price_ils, stock, status, updated_at: new Date().toISOString() })
     .eq("slug", slug);
   if (error) throw new Error(error.message);
   refresh();
@@ -100,6 +101,7 @@ export async function saveProductFull(form: FormData) {
       sizes: sizes.length ? sizes : null,
       images,
       price_ils: parsePrice(form.get("price")),
+      stock: parsePrice(form.get("stock")),
       status,
       updated_at: new Date().toISOString(),
     })

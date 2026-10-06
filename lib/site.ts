@@ -12,6 +12,7 @@ export type CatalogItem = Product & {
   status: Status;
   description: string;
   images: string[];
+  stock: number | null;
 };
 
 // Public data is cached across requests and refreshed when the admin saves (see app/admin/actions.ts).
@@ -42,13 +43,14 @@ type Row = {
   details: string[] | null;
   sizes: string[] | null;
   images: string[] | null;
+  stock: number | null;
 };
 
 const loadCatalog = unstable_cache(
   async (): Promise<(CatalogItem & { sort: number })[]> => {
     const { data } = await supabasePublic()
       .from("products")
-      .select("slug, price_ils, status, sort, name, color, code, description, details, sizes, images");
+      .select("slug, price_ils, status, sort, name, color, code, description, details, sizes, images, stock");
     const rows = new Map(((data ?? []) as Row[]).map((r) => [r.slug, r]));
     const known = new Set(baseProducts.map((p) => p.slug));
     const fromCode = baseProducts.map((p, i) => merge(p, rows.get(p.slug), i));
@@ -74,6 +76,7 @@ function merge(p: Product, r: Row | undefined, i: number): CatalogItem & { sort:
     description: r?.description ?? "",
     images: r?.images?.length ? r.images : defaultImages(p.slug),
     price: r?.price_ils ?? null,
+    stock: r?.stock ?? null,
     status: r?.status ?? "available",
     sort: r?.sort ?? i,
   };
@@ -117,6 +120,11 @@ export const getShopAccess = cache(async () => {
   const [{ mode }, admin] = await Promise.all([getSettings(), getIsAdmin()]);
   return { mode, admin, visible: mode === "open" || admin, preview: mode !== "open" && admin };
 });
+
+// Out of stock counts as sold out without the admin changing the status.
+export function isSoldOut(p: CatalogItem) {
+  return p.status === "sold_out" || p.stock === 0;
+}
 
 export function formatPrice(price: number | null) {
   return price == null ? "Price TBA" : `₪${price}`;

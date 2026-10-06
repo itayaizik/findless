@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getDrop } from "@/lib/site";
 import { getT } from "@/lib/i18n";
+import { hitRate } from "@/lib/rate";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -29,6 +30,10 @@ export async function placeOrder(_prev: OrderState, form: FormData): Promise<Ord
   if (email && !EMAIL_RE.test(email)) return { ok: false, error: t.errEmail };
   if (phone && phone.replace(/\D/g, "").length < 9) return { ok: false, error: t.errPhone };
 
+  const rate = await hitRate("order");
+  if (rate === "too_fast") return { ok: false, error: t.errTooFast };
+  if (rate === "slow_down") return { ok: false, error: t.errSlowDown };
+
   const supabase = await supabaseServer();
   const { data, error } = await supabase.rpc("place_order", {
     p_slug: slug,
@@ -41,32 +46,56 @@ export async function placeOrder(_prev: OrderState, form: FormData): Promise<Ord
   if (error) {
     if (error.message.includes("store_closed")) return { ok: false, error: t.errClosed };
     if (error.message.includes("not_available")) return { ok: false, error: t.errSoldOut };
+    if (error.message.includes("too_many")) return { ok: false, error: t.errTooMany };
     console.error("place_order failed", error);
     return { ok: false, error: t.errGeneric };
   }
 
   const id = Number(data);
-  await notifyNewOrder(id, `${product.name} [${product.color}] / ${size}`, name, phone, email, note);
+  await notifyNewOrder({ id, item: `${product.name} [${product.color}]`, size, price: product.price, name, phone, email, note });
   revalidatePath("/account");
   return { ok: true, id, contact: phone || email };
 }
 
-// Emails the shop about a new order once Resend is set up (RESEND_API_KEY, EMAIL_FROM, ORDER_NOTIFY_EMAIL).
-async function notifyNewOrder(id: number, item: string, name: string, phone: string, email: string, note: string) {
+// Emails the shop about a new order (RESEND_API_KEY, EMAIL_FROM, ORDER_NOTIFY_EMAIL).
+async function notifyNewOrder(o: {
+  id: number;
+  item: string;
+  size: string;
+  price: number | null;
+  name: string;
+  phone: string;
+  email: string;
+  note: string;
+}) {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.EMAIL_FROM;
   const to = process.env.ORDER_NOTIFY_EMAIL;
   if (!apiKey || !from || !to) return;
-  const esc = (s: string) => s.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c]!);
+  const esc = (s: string) => s.replace(/[<>&"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" })[c]!);
+  const h = await headers();
+  const site = `https://${h.get("host")}`;
+  const digits = o.phone.replace(/\D/g, "");
+  const wa = digits ? `https://wa.me/${digits.startsWith("0") ? `972${digits.slice(1)}` : digits}` : "";
+  const row = (k: string, v: string) =>
+    v ? `<tr><td style="color:#8b8577;padding:4px 16px 4px 0">${k}</td><td style="padding:4px 0">${v}</td></tr>` : "";
+  const html = `<div style="background:#0a0a0a;color:#e6dcc6;font-family:monospace;padding:32px">
+<p style="letter-spacing:.1em;margin:0 0 16px">FINDLESS · NEW ORDER #${o.id}</p>
+<table style="color:#e6dcc6;font-family:monospace;font-size:14px">
+${row("item", esc(o.item))}${row("size", esc(o.size))}${row("price", o.price != null ? `&#8362;${o.price}` : "not set")}
+${row("name", esc(o.name))}${row("phone", esc(o.phone))}${row("email", esc(o.email))}${row("note", esc(o.note))}
+</table>
+<p style="margin:24px 0 0">
+${wa ? `<a href="${wa}" style="color:#0a0a0a;background:#e6dcc6;padding:10px 14px;text-decoration:none">WHATSAPP</a>&nbsp;` : ""}
+<a href="${site}/admin#orders-h" style="color:#e6dcc6;border:1px solid #e6dcc6;padding:9px 14px;text-decoration:none">OPEN ADMIN</a>
+</p></div>`;
+  const text = [`new order #${o.id}`, o.item, `size ${o.size}`, o.name, o.phone, o.email, o.note, `${site}/admin`]
+    .filter(Boolean)
+    .join("\n");
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      from,
-      to,
-      subject: `new order #${id}: ${item}`,
-      html: `<p>#${id}<br>${esc(item)}<br>${esc(name)}<br>${esc(phone)}<br>${esc(email)}<br>${esc(note)}</p>`,
-    }),
+    body: JSON.stringify({ from, to, subject: `new order #${o.id}: ${o.item} / ${o.size}`, html, text }),
   });
   if (!res.ok) console.error("order email failed", res.status, await res.text());
 }

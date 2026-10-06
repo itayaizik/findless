@@ -15,6 +15,10 @@ import { getT } from "@/lib/i18n";
 export const metadata: Metadata = {
   title: { default: "FINDLESS", template: "%s · FINDLESS" },
   description: "couldn't find clothes we liked, so we made them.",
+  metadataBase: new URL(
+    process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000",
+  ),
+  openGraph: { siteName: "FINDLESS", type: "website" },
 };
 
 export const viewport: Viewport = {

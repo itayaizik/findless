@@ -5,6 +5,21 @@ export type Product = {
   color: string;
   details: string[];
   sizes: string[];
+  sizeChart?: SizeChart;
+};
+
+// Measurements in cm, one value per size (same order as sizes).
+export type SizeChart = { rows: { key: "length" | "chest" | "shoulder" | "sleeve"; values: number[] }[]; model?: string };
+
+// Drop 001 zip hoodie, from the size chart in collection/fit.
+const ZIP_HOODIE_CHART: SizeChart = {
+  rows: [
+    { key: "length", values: [65, 67, 69, 71] },
+    { key: "chest", values: [61, 64, 67, 70] },
+    { key: "shoulder", values: [57, 60, 63, 66] },
+    { key: "sleeve", values: [56, 57, 58, 59] },
+  ],
+  model: "177cm · L",
 };
 
 const SIZES = ["S", "M", "L", "XL"];
@@ -23,6 +38,7 @@ export const products: Product[] = [
       "Distressed details",
     ],
     sizes: SIZES,
+    sizeChart: ZIP_HOODIE_CHART,
   },
   {
     slug: "zip-hoodie-baby-blue",
@@ -36,6 +52,7 @@ export const products: Product[] = [
       "Distressed details",
     ],
     sizes: SIZES,
+    sizeChart: ZIP_HOODIE_CHART,
   },
   {
     slug: "zip-hoodie-pink",
@@ -49,6 +66,7 @@ export const products: Product[] = [
       "Distressed details",
     ],
     sizes: SIZES,
+    sizeChart: ZIP_HOODIE_CHART,
   },
   {
     slug: "crop-zip-hoodie-black",

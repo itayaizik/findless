@@ -52,6 +52,10 @@ export default async function EditProduct({ params }: PageProps<"/admin/products
           </label>
         </div>
         <label className="field">
+          <span>Stock left (empty = no limit, goes down with each order)</span>
+          <input name="stock" type="number" min={0} step={1} defaultValue={p.stock ?? ""} />
+        </label>
+        <label className="field">
           <span>Sizes (comma or space)</span>
           <input name="sizes" defaultValue={p.sizes.join(", ")} placeholder="S, M, L, XL" />
         </label>
