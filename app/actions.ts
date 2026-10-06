@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { supabaseServer } from "@/lib/supabase/server";
-import { getCatalog } from "@/lib/site";
+import { getDrop } from "@/lib/site";
 import { getT } from "@/lib/i18n";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -22,7 +22,7 @@ export async function placeOrder(_prev: OrderState, form: FormData): Promise<Ord
   const email = String(form.get("email") ?? "").trim().toLowerCase().slice(0, 254);
   const note = String(form.get("note") ?? "").trim().slice(0, 500);
 
-  const product = (await getCatalog()).find((p) => p.slug === slug);
+  const product = (await getDrop()).find((p) => p.slug === slug);
   if (!product) return { ok: false, error: t.errNoItem };
   if (!product.sizes.includes(size)) return { ok: false, error: t.errSize };
   if (!phone && !email) return { ok: false, error: t.errContact };

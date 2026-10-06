@@ -31,9 +31,10 @@ export async function saveSettings(form: FormData) {
   const mode = form.get("mode") === "open" ? "open" : "waitlist";
   const local = String(form.get("drop_at") ?? "");
   const drop_at = local ? israelLocalToIso(local) : null;
+  const featured_slug = String(form.get("featured") ?? "") || null;
   const { error } = await supabase
     .from("site_settings")
-    .update({ mode, drop_at, updated_at: new Date().toISOString() })
+    .update({ mode, drop_at, featured_slug, updated_at: new Date().toISOString() })
     .eq("id", 1);
   if (error) throw new Error(error.message);
   refresh();

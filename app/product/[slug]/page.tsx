@@ -2,18 +2,27 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ProductCard from "@/components/ProductCard";
 import OrderForm from "@/components/OrderForm";
-import { formatPrice, getCatalog, getShopAccess, getUser } from "@/lib/site";
+import { formatPrice, getDrop, getShopAccess, getUser } from "@/lib/site";
 import { getT } from "@/lib/i18n";
 
-export async function generateMetadata({ params }: PageProps<"/product/[slug]">): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps<"/product/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const p = (await getCatalog()).find((x) => x.slug === slug);
+  const p = (await getDrop()).find((x) => x.slug === slug);
   return p ? { title: `${p.name} [${p.color}]` } : {};
 }
 
-export default async function ProductPage({ params }: PageProps<"/product/[slug]">) {
+export default async function ProductPage({
+  params,
+}: PageProps<"/product/[slug]">) {
   const { slug } = await params;
-  const [access, catalog, user, { t }] = await Promise.all([getShopAccess(), getCatalog(), getUser(), getT()]);
+  const [access, catalog, user, { t }] = await Promise.all([
+    getShopAccess(),
+    getDrop(),
+    getUser(),
+    getT(),
+  ]);
   const p = catalog.find((x) => x.slug === slug);
   if (!access.visible || !p) notFound();
 
@@ -24,7 +33,9 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
     <>
       <section className="pdp">
         <div className="info">
-          <span className="muted">{t.itemNo} {p.code}</span>
+          <span className="muted">
+            {t.itemNo} {p.code}
+          </span>
           <h1>
             {p.name} [{p.color}]
           </h1>
@@ -50,7 +61,9 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
         </div>
 
         <div className="buy">
-          <span className="price">{soldOut ? t.soldOut : formatPrice(p.price)}</span>
+          <span className="price">
+            {soldOut ? t.soldOut : formatPrice(p.price)}
+          </span>
           {soldOut ? (
             <p className="muted">{t.soldOutMsg}</p>
           ) : (
@@ -59,16 +72,21 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
         </div>
       </section>
 
-      <section className="also" aria-label={t.alsoLike}>
-        <div className="section-head" style={{ paddingLeft: 0, paddingRight: 0 }}>
-          <span>{t.alsoLike}</span>
-        </div>
-        <div className="grid">
-          {others.map((o) => (
-            <ProductCard key={o.slug} p={o} t={t} />
-          ))}
-        </div>
-      </section>
+      {others.length > 0 && (
+        <section className="also" aria-label={t.alsoLike}>
+          <div
+            className="section-head"
+            style={{ paddingLeft: 0, paddingRight: 0 }}
+          >
+            <span>{t.alsoLike}</span>
+          </div>
+          <div className="grid">
+            {others.map((o) => (
+              <ProductCard key={o.slug} p={o} t={t} />
+            ))}
+          </div>
+        </section>
+      )}
     </>
   );
 }

@@ -354,3 +354,7 @@ select option { background: var(--bg); }
   .footer-main { grid-template-columns: auto 1fr auto; }
   .footer-main .footer-tag { justify-self: center; }
 }
+
+/* single product drop */
+.grid.single { grid-template-columns: minmax(0, 560px); justify-content: center; }
+.grid.single .meta { font-size: 0.8125rem; }

@@ -17,8 +17,12 @@ export type CatalogItem = Product & {
 // Public data is cached across requests and refreshed when the admin saves (see app/admin/actions.ts).
 const loadSettings = unstable_cache(
   async () => {
-    const { data } = await supabasePublic().from("site_settings").select("mode, drop_at").eq("id", 1).single();
-    return { mode: (data?.mode ?? "waitlist") as Mode, dropAt: (data?.drop_at as string | null) ?? null };
+    const { data } = await supabasePublic().from("site_settings").select("mode, drop_at, featured_slug").eq("id", 1).single();
+    return {
+      mode: (data?.mode ?? "waitlist") as Mode,
+      dropAt: (data?.drop_at as string | null) ?? null,
+      featured: (data?.featured_slug as string | null) ?? null,
+    };
   },
   ["settings"],
   { tags: ["settings"], revalidate: 300 },
@@ -78,6 +82,14 @@ function merge(p: Product, r: Row | undefined, i: number): CatalogItem & { sort:
 export const getCatalog = cache(async (includeHidden = false): Promise<CatalogItem[]> => {
   const all = await loadCatalog();
   return all.filter((p) => includeHidden || p.status !== "hidden").map(({ sort: _sort, ...p }) => p);
+});
+
+// What's in the drop: everything, or just one product when the admin picked a single drop.
+export const getDrop = cache(async (): Promise<CatalogItem[]> => {
+  const [items, { featured }] = await Promise.all([getCatalog(), getSettings()]);
+  if (!featured) return items;
+  const one = items.filter((p) => p.slug === featured);
+  return one.length ? one : items;
 });
 
 // Skip the auth server round trip for visitors who aren't logged in.

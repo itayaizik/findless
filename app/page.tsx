@@ -2,7 +2,7 @@ import { Stamp } from "@/components/logos";
 import Countdown from "@/components/Countdown";
 import SignupForm from "@/components/SignupForm";
 import ProductCard from "@/components/ProductCard";
-import { getCatalog, getSettings, getShopAccess } from "@/lib/site";
+import { getDrop, getSettings, getShopAccess } from "@/lib/site";
 import { fill, getT } from "@/lib/i18n";
 
 export default async function Home() {
@@ -36,14 +36,14 @@ export default async function Home() {
 }
 
 async function Shop() {
-  const [items, { t }] = await Promise.all([getCatalog(), getT()]);
+  const [items, { t }] = await Promise.all([getDrop(), getT()]);
   return (
     <section id="shop" aria-label={t.shopLabel}>
       <div className="section-head">
-        <span>{fill(t.shopHead, { n: items.length })}</span>
+        <span>{items.length === 1 ? t.shopHeadOne : fill(t.shopHead, { n: items.length })}</span>
         <span className="muted">{t.shopNote}</span>
       </div>
-      <div className="grid">
+      <div className={items.length === 1 ? "grid single" : "grid"}>
         {items.map((p, i) => (
           <ProductCard key={p.slug} p={p} t={t} eager={i < 4} />
         ))}

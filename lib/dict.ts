@@ -23,6 +23,7 @@ const en = {
   heroShop: "Shop the drop",
   heroSoon: "First drop soon",
   shopHead: "Drop 001 · {n} items",
+  shopHeadOne: "Drop 001 · 1 item",
   shopNote: "Preorder · pay with Bit or PayBox",
   shopLabel: "Shop",
 
@@ -126,6 +127,7 @@ const he: Dict = {
   heroShop: "לקולקציה",
   heroSoon: "הדרופ הראשון בקרוב",
   shopHead: "Drop 001 · {n} פריטים",
+  shopHeadOne: "Drop 001 · פריט אחד",
   shopNote: "הזמנה מוקדמת · תשלום בביט או פייבוקס",
   shopLabel: "חנות",
 

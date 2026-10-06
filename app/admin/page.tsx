@@ -52,6 +52,17 @@ export default async function Admin() {
             </label>
           </fieldset>
           <label className="field">
+            <span>What&apos;s in the drop</span>
+            <select name="featured" defaultValue={settings.featured ?? ""}>
+              <option value="">All products</option>
+              {catalog.map((p) => (
+                <option key={p.slug} value={p.slug}>
+                  Only {p.name} [{p.color}]
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="field">
             <span>Drop date (Israel time, empty = TBA)</span>
             <input type="datetime-local" name="drop_at" defaultValue={isoToIsraelLocal(settings.dropAt)} />
           </label>
