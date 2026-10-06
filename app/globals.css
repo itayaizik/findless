@@ -167,7 +167,6 @@ button { cursor: pointer; }
 .pdp .price { font-size: 0.875rem; font-weight: 700; }
 .pdp .desc { text-transform: none; letter-spacing: 0.02em; color: var(--muted); white-space: pre-line; max-width: 360px; }
 .pdp ul { list-style: none; display: grid; gap: 2px; text-transform: none; letter-spacing: 0.02em; }
-.pdp ul li::before { content: "· "; color: var(--muted); }
 @media (min-width: 1000px) {
   .pdp { grid-template-columns: 240px minmax(0, 620px) 300px; justify-content: space-between; gap: 40px; }
   .pdp .info, .pdp .buy { position: sticky; top: 72px; }
