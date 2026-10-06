@@ -34,3 +34,10 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Emails (Resend)
+
+- `RESEND_API_KEY`: send-only key.
+- `EMAIL_FROM`: `FINDLESS <onboarding@resend.dev>` until findless.co.il is verified in Resend.
+- `ORDER_NOTIFY_EMAIL`: gets an email for every new order. With the resend.dev sender this must be the email the Resend account was opened with.
+- Welcome emails to the waitlist only send once `EMAIL_FROM` is on a verified domain.
