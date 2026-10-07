@@ -3,7 +3,7 @@
 import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
-import { getIsAdmin, israelLocalToIso } from "@/lib/site";
+import { getCatalog, getIsAdmin, israelLocalToIso } from "@/lib/site";
 
 async function adminClient() {
   if (!(await getIsAdmin())) throw new Error("Not allowed");
@@ -59,8 +59,10 @@ export async function saveOrderStatus(form: FormData) {
   const supabase = await adminClient();
   const id = Number(form.get("id"));
   const status = String(form.get("status"));
+  if (!Number.isInteger(id)) throw new Error("Bad order");
   if (!["new", "contacted", "paid", "shipped", "cancelled"].includes(status)) throw new Error("Bad status");
-  const { error } = await supabase.from("orders").update({ status }).eq("id", id);
+  const admin_note = String(form.get("admin_note") ?? "").trim().slice(0, 1000) || null;
+  const { error } = await supabase.from("orders").update({ status, admin_note }).eq("id", id);
   if (error) throw new Error(error.message);
   revalidatePath("/admin");
 }
@@ -147,4 +149,38 @@ export async function createImageUpload(slug: string, ext: string) {
     publicUrl: bucket.getPublicUrl(path).data.publicUrl,
     apikey: process.env.SUPABASE_ANON_KEY!,
   };
+}
+
+// Admins. The new admin needs a FINDLESS account first (rules live in admin_add / admin_remove in Supabase).
+export async function addAdmin(form: FormData) {
+  const supabase = await adminClient();
+  const email = clean(form.get("email"), 254).toLowerCase();
+  const { data, error } = await supabase.rpc("admin_add", { p_email: email });
+  if (error) throw new Error(error.message);
+  redirect(`/admin?admin=${data}#admins-h`);
+}
+
+export async function removeAdmin(form: FormData) {
+  const supabase = await adminClient();
+  const { data, error } = await supabase.rpc("admin_remove", { p_user: String(form.get("user_id")) });
+  if (error) throw new Error(error.message);
+  redirect(`/admin?admin=${data === "ok" ? "removed" : data}#admins-h`);
+}
+
+// Moves a product one place up or down in the shop and renumbers the order.
+export async function moveProduct(form: FormData) {
+  const supabase = await adminClient();
+  const slug = String(form.get("slug"));
+  const dir = form.get("dir") === "up" ? -1 : 1;
+  const list = (await getCatalog(true)).map((p) => p.slug);
+  const i = list.indexOf(slug);
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= list.length) return;
+  [list[i], list[j]] = [list[j], list[i]];
+  const results = await Promise.all(
+    list.map((s, n) => supabase.from("products").update({ sort: (n + 1) * 10 }).eq("slug", s)),
+  );
+  const failed = results.find((r) => r.error);
+  if (failed?.error) throw new Error(failed.error.message);
+  refresh();
 }

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { formatIsrael, getCatalog, getIsAdmin, getSettings, isoToIsraelLocal } from "@/lib/site";
 import { supabaseServer } from "@/lib/supabase/server";
 import Link from "next/link";
-import { addProduct, saveOrderStatus, saveProduct, saveSettings } from "./actions";
+import { addAdmin, addProduct, moveProduct, removeAdmin, saveOrderStatus, saveProduct, saveSettings } from "./actions";
 
 export const metadata: Metadata = { title: "Admin", robots: { index: false } };
 
@@ -15,27 +15,76 @@ function waLink(phone: string) {
   return `https://wa.me/${intl}`;
 }
 
-export default async function Admin() {
+const ADMIN_MSG: Record<string, string> = {
+  ok: "Added. They see the admin link next time they open the site.",
+  already: "That person is already an admin.",
+  no_account: "No account with that email. Ask them to sign up on the site first, then add them here.",
+  self: "You can't remove yourself. Ask another admin to do it.",
+  removed: "Removed.",
+};
+
+export default async function Admin({ searchParams }: PageProps<"/admin">) {
   if (!(await getIsAdmin())) notFound();
+  const sp = await searchParams;
+  const filter = ORDER_STATUSES.includes(String(sp.status)) ? String(sp.status) : "all";
+  const adminMsg = ADMIN_MSG[String(sp.admin)] ?? null;
 
   const supabase = await supabaseServer();
-  const [settings, catalog, ordersRes, subsRes] = await Promise.all([
+  const [settings, catalog, ordersRes, subsRes, adminsRes] = await Promise.all([
     getSettings(),
     getCatalog(true),
     supabase
       .from("orders")
-      .select("id, product_slug, size, name, phone, email, note, price_ils, status, created_at")
+      .select("id, product_slug, size, name, phone, email, note, price_ils, status, admin_note, created_at")
       .order("created_at", { ascending: false })
       .limit(500),
     supabase.from("subscribers").select("email, source, created_at").order("created_at", { ascending: false }),
+    supabase.rpc("admin_list"),
   ]);
-  const orders = ordersRes.data ?? [];
+  const allOrders = ordersRes.data ?? [];
+  const orders = filter === "all" ? allOrders : allOrders.filter((o) => o.status === filter);
   const subs = subsRes.data ?? [];
-  const openOrders = orders.filter((o) => o.status === "new").length;
+  const admins = (adminsRes.data ?? []) as { user_id: string; email: string; is_me: boolean }[];
+  const count = (st: string) => allOrders.filter((o) => o.status === st).length;
+  const openOrders = count("new");
+  const live = allOrders.filter((o) => o.status !== "cancelled");
+  const sum = (list: typeof allOrders) => list.reduce((n, o) => n + (o.price_ils ?? 0), 0);
+  const paid = live.filter((o) => o.status === "paid" || o.status === "shipped");
+  const dayAgo = Date.now() - 864e5;
+  const subsToday = subs.filter((s) => Date.parse(s.created_at) > dayAgo).length;
 
   return (
     <div className="admin">
       <h1>Admin</h1>
+
+      <section aria-labelledby="stats-h">
+        <h2 id="stats-h" className="sr-only">Summary</h2>
+        <dl className="stats">
+          <div>
+            <dt>Orders</dt>
+            <dd>{live.length}</dd>
+          </div>
+          <div>
+            <dt>Waiting for you</dt>
+            <dd>{openOrders}</dd>
+          </div>
+          <div>
+            <dt>Paid</dt>
+            <dd>₪{sum(paid)}</dd>
+          </div>
+          <div>
+            <dt>Still to collect</dt>
+            <dd>₪{sum(live) - sum(paid)}</dd>
+          </div>
+          <div>
+            <dt>Waitlist</dt>
+            <dd>
+              {subs.length}
+              {subsToday > 0 && <span className="dim"> +{subsToday} today</span>}
+            </dd>
+          </div>
+        </dl>
+      </section>
 
       <section aria-labelledby="site-h">
         <h2 id="site-h">Site</h2>
@@ -80,7 +129,7 @@ export default async function Admin() {
             <span>Status</span>
             <span />
           </div>
-          {catalog.map((p) => (
+          {catalog.map((p, i) => (
             <form key={p.slug} action={saveProduct} className="trow">
               <input type="hidden" name="slug" value={p.slug} />
               <span className="trow-item">
@@ -91,6 +140,20 @@ export default async function Admin() {
                   <Link href={`/admin/products/${p.slug}`} className="link">
                     Edit details &amp; images
                   </Link>
+                  <span className="move">
+                    <button formAction={moveProduct} name="dir" value="up" disabled={i === 0} aria-label={`Move ${p.name} ${p.color} up`}>
+                      ↑
+                    </button>
+                    <button
+                      formAction={moveProduct}
+                      name="dir"
+                      value="down"
+                      disabled={i === catalog.length - 1}
+                      aria-label={`Move ${p.name} ${p.color} down`}
+                    >
+                      ↓
+                    </button>
+                  </span>
                 </span>
               </span>
               <label>
@@ -130,10 +193,24 @@ export default async function Admin() {
 
       <section aria-labelledby="orders-h">
         <h2 id="orders-h">
-          Orders · {orders.length} {openOrders > 0 && <span className="badge">{openOrders} new</span>}
+          Orders · {allOrders.length} {openOrders > 0 && <span className="badge">{openOrders} new</span>}
         </h2>
+        <nav className="filters" aria-label="Filter orders">
+          {["all", ...ORDER_STATUSES].map((st) => (
+            <Link
+              key={st}
+              href={st === "all" ? "/admin#orders-h" : `/admin?status=${st}#orders-h`}
+              aria-current={filter === st ? "true" : undefined}
+            >
+              {st} ({st === "all" ? allOrders.length : count(st)})
+            </Link>
+          ))}
+          <a href="/admin/export?type=orders" className="link">
+            Download CSV
+          </a>
+        </nav>
         {orders.length === 0 ? (
-          <p className="muted">No orders yet.</p>
+          <p className="muted">{allOrders.length === 0 ? "No orders yet." : "Nothing here."}</p>
         ) : (
           <div className="table">
             {orders.map((o) => {
@@ -166,16 +243,22 @@ export default async function Admin() {
                     {o.email && <a href={`mailto:${o.email}`}>{o.email}</a>}
                     {o.note && <span className="muted"> · {o.note}</span>}
                   </span>
-                  <label>
-                    <span className="sr-only">Status of order {o.id}</span>
-                    <select name="status" defaultValue={o.status}>
-                      {ORDER_STATUSES.map((s) => (
-                        <option key={s} value={s}>
-                          {s}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                  <span className="order-edit">
+                    <label>
+                      <span className="sr-only">Status of order {o.id}</span>
+                      <select name="status" defaultValue={o.status}>
+                        {ORDER_STATUSES.map((s) => (
+                          <option key={s} value={s}>
+                            {s}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      <span className="sr-only">Private note for order {o.id}</span>
+                      <input name="admin_note" defaultValue={o.admin_note ?? ""} placeholder="note (only you see)" maxLength={1000} />
+                    </label>
+                  </span>
                   <button className="btn small">Save</button>
                 </form>
               );
@@ -185,7 +268,14 @@ export default async function Admin() {
       </section>
 
       <section aria-labelledby="subs-h">
-        <h2 id="subs-h">Waitlist · {subs.length}</h2>
+        <h2 id="subs-h">
+          Waitlist · {subs.length}
+          {subs.length > 0 && (
+            <a href="/admin/export?type=waitlist" className="link h-link">
+              Download CSV
+            </a>
+          )}
+        </h2>
         {subs.length === 0 ? (
           <p className="muted">Nobody yet.</p>
         ) : (
@@ -209,6 +299,43 @@ export default async function Admin() {
             </ul>
           </>
         )}
+      </section>
+
+      <section aria-labelledby="admins-h">
+        <h2 id="admins-h">Admins · {admins.length}</h2>
+        {adminMsg && (
+          <p className="hint" role="status">
+            {adminMsg}
+          </p>
+        )}
+        <ul className="subs">
+          {admins.map((a) => (
+            <li key={a.user_id}>
+              <span className="lower">
+                {a.email}
+                {a.is_me && <span className="dim"> (you)</span>}
+              </span>
+              {!a.is_me && (
+                <form action={removeAdmin}>
+                  <input type="hidden" name="user_id" value={a.user_id} />
+                  <button className="btn small ghost">Remove</button>
+                </form>
+              )}
+            </li>
+          ))}
+        </ul>
+        <form action={addAdmin} className="add-product add-admin">
+          <span>Add admin</span>
+          <label>
+            <span className="sr-only">Email of the new admin</span>
+            <input name="email" type="email" required placeholder="their account email" maxLength={254} />
+          </label>
+          <button className="btn small">Add</button>
+        </form>
+        <p className="hint">
+          They need an account on the site first (Login → sign up). Admins can do everything here, including adding
+          and removing other admins.
+        </p>
       </section>
     </div>
   );

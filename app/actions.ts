@@ -106,6 +106,9 @@ export async function signIn(_prev: AuthState, form: FormData): Promise<AuthStat
   const { t } = await getT();
   const email = String(form.get("email") ?? "").trim().toLowerCase();
   const password = String(form.get("password") ?? "");
+  const rate = await hitRate("login");
+  if (rate === "too_fast") return { error: t.errTooFast };
+  if (rate === "slow_down") return { error: t.errSlowDown };
   const supabase = await supabaseServer();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return { error: t.errLogin };
@@ -117,7 +120,10 @@ export async function signUp(_prev: AuthState, form: FormData): Promise<AuthStat
   const email = String(form.get("email") ?? "").trim().toLowerCase();
   const password = String(form.get("password") ?? "");
   if (!EMAIL_RE.test(email)) return { error: t.errEmail };
-  if (password.length < 8) return { error: t.errPassword };
+  if (password.length < 8 || password.length > 72) return { error: t.errPassword };
+  const rate = await hitRate("signup");
+  if (rate === "too_fast") return { error: t.errTooFast };
+  if (rate === "slow_down") return { error: t.errSlowDown };
   const supabase = await supabaseServer();
   const h = await headers();
   const origin = h.get("origin") ?? `https://${h.get("host")}`;
