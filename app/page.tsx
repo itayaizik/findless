@@ -1,4 +1,4 @@
-import { Stamp } from "@/components/logos";
+import SpinLogo from "@/components/SpinLogo";
 import Countdown from "@/components/Countdown";
 import SignupForm from "@/components/SignupForm";
 import ProductCard from "@/components/ProductCard";
@@ -13,7 +13,7 @@ export default async function Home() {
     <>
       {open ? (
         <section className="hero hero-open">
-          <Stamp className="stamp" />
+          <SpinLogo className="stamp" />
           <h1>{t.heroOpen}</h1>
           <p className="tagline">{t.tagline}</p>
           <a href="#shop" className="link">
@@ -22,7 +22,7 @@ export default async function Home() {
         </section>
       ) : (
         <section className="hero">
-          <Stamp className="stamp" />
+          <SpinLogo className="stamp" />
           <h1>{t.heroSoon}</h1>
           <Countdown dropAt={dropAt} />
           <SignupForm source="home" />

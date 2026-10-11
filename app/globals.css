@@ -395,3 +395,8 @@ select option { background: var(--bg); }
 }
 .admin h2 { scroll-margin-top: 90px; }
 .h-link { font-size: 0.6875rem; margin-inline-start: auto; font-weight: 400; }
+
+/* spinning chrome 失 (black video background blends away on the dark page) */
+.spin-logo { display: block; height: auto; mix-blend-mode: screen; pointer-events: none; }
+.hero .spin-logo { width: min(64vw, 300px); }
+.hero.hero-open .spin-logo { width: min(40vw, 180px); }
