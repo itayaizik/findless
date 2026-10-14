@@ -6,7 +6,7 @@ const SRC = "https://thrine.app/embed/v1.js";
 
 // 3D 失 model hosted on thrine.app. The script loads after the page has rendered,
 // so it never blocks the first paint; the box keeps its size so nothing jumps.
-export default function ModelLogo({ className = "" }: { className?: string }) {
+export default function ModelLogo({ project, className = "" }: { project: string; className?: string }) {
   useEffect(() => {
     if (document.querySelector(`script[src="${SRC}"]`)) return;
     const s = document.createElement("script");
@@ -18,7 +18,7 @@ export default function ModelLogo({ className = "" }: { className?: string }) {
 
   return (
     <div className={`model-logo ${className}`} role="img" aria-label="FINDLESS 失">
-      <model-embed project="e_fb350f6603257caeb8bf" style={{ display: "block", width: "100%", aspectRatio: "1571 / 833" }} />
+      <model-embed project={project} style={{ display: "block", width: "100%", aspectRatio: "1571 / 833" }} />
     </div>
   );
 }

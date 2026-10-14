@@ -18,11 +18,12 @@ export type CatalogItem = Product & {
 // Public data is cached across requests and refreshed when the admin saves (see app/admin/actions.ts).
 const loadSettings = unstable_cache(
   async () => {
-    const { data } = await supabasePublic().from("site_settings").select("mode, drop_at, featured_slug").eq("id", 1).single();
+    const { data } = await supabasePublic().from("site_settings").select("mode, drop_at, featured_slug, hero_logo").eq("id", 1).single();
     return {
       mode: (data?.mode ?? "waitlist") as Mode,
       dropAt: (data?.drop_at as string | null) ?? null,
       featured: (data?.featured_slug as string | null) ?? null,
+      heroLogo: (data?.hero_logo as string | null) ?? "stamp",
     };
   },
   ["settings"],

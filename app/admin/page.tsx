@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { formatIsrael, getCatalog, getIsAdmin, getSettings, isoToIsraelLocal } from "@/lib/site";
 import { supabaseServer } from "@/lib/supabase/server";
 import Link from "next/link";
+import { HERO_LOGOS } from "@/lib/heroLogos";
 import { addAdmin, addProduct, moveProduct, removeAdmin, saveOrderStatus, saveProduct, saveSettings } from "./actions";
 
 export const metadata: Metadata = { title: "Admin", robots: { index: false } };
@@ -110,6 +111,25 @@ export default async function Admin({ searchParams }: PageProps<"/admin">) {
                 </option>
               ))}
             </select>
+          </label>
+          <label className="field">
+            <span>Home page logo</span>
+            <select name="hero_logo" defaultValue={HERO_LOGOS.some((l) => l.id === settings.heroLogo) ? settings.heroLogo : "stamp"}>
+              {HERO_LOGOS.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="field">
+            <span>Or another thrine.app model (paste the project code, e.g. e_97b1b0db855ae00695cd)</span>
+            <input
+              name="hero_logo_custom"
+              defaultValue={HERO_LOGOS.some((l) => l.id === settings.heroLogo) ? "" : settings.heroLogo}
+              placeholder="empty = use the list above"
+              pattern="e_[a-z0-9]{8,40}"
+            />
           </label>
           <label className="field">
             <span>Drop date (Israel time, empty = TBA)</span>

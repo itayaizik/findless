@@ -1,4 +1,5 @@
 import ModelLogo from "@/components/ModelLogo";
+import { Stamp } from "@/components/logos";
 import Countdown from "@/components/Countdown";
 import SignupForm from "@/components/SignupForm";
 import ProductCard from "@/components/ProductCard";
@@ -6,14 +7,16 @@ import { getDrop, getSettings, getShopAccess } from "@/lib/site";
 import { fill, getT } from "@/lib/i18n";
 
 export default async function Home() {
-  const [{ dropAt }, access, { t }] = await Promise.all([getSettings(), getShopAccess(), getT()]);
+  const [{ dropAt, heroLogo }, access, { t }] = await Promise.all([getSettings(), getShopAccess(), getT()]);
   const open = access.mode === "open";
+  const logo =
+    heroLogo === "stamp" ? <Stamp className="stamp" /> : <ModelLogo project={heroLogo} className="stamp" />;
 
   return (
     <>
       {open ? (
         <section className="hero hero-open">
-          <ModelLogo className="stamp" />
+          {logo}
           <h1>{t.heroOpen}</h1>
           <p className="tagline">{t.tagline}</p>
           <a href="#shop" className="link">
@@ -22,7 +25,7 @@ export default async function Home() {
         </section>
       ) : (
         <section className="hero">
-          <ModelLogo className="stamp" />
+          {logo}
           <h1>{t.heroSoon}</h1>
           <Countdown dropAt={dropAt} />
           <SignupForm source="home" />

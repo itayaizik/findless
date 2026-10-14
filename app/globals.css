@@ -396,6 +396,17 @@ select option { background: var(--bg); }
 .admin h2 { scroll-margin-top: 90px; }
 .h-link { font-size: 0.6875rem; margin-inline-start: auto; font-weight: 400; }
 
-/* 3D 失 model (thrine.app embed) */
-.hero .model-logo { width: min(92vw, 640px); }
-.hero.hero-open .model-logo { width: min(80vw, 420px); }
+/* 3D 失 model (thrine.app embed). Screen blend drops a black background, and the
+   soft radial mask fades whatever is left at the edges so no box shows. */
+.model-logo {
+  mix-blend-mode: screen;
+  -webkit-mask-image: radial-gradient(ellipse 50% 50% at center, #000 55%, transparent 100%);
+  mask-image: radial-gradient(ellipse 50% 50% at center, #000 55%, transparent 100%);
+}
+.hero:has(.model-logo) { overflow-x: clip; }
+.hero .model-logo { width: min(100vw, 1100px); margin: -4vw 0 -4vw; flex-shrink: 0; }
+.hero.hero-open .model-logo { width: min(100vw, 760px); margin: -2vw 0 -4vw; }
+@media (max-width: 700px) {
+  .hero .model-logo { width: 165vw; margin: -14vw 0 -18vw; }
+  .hero.hero-open .model-logo { width: 140vw; margin: -10vw 0 -14vw; }
+}
