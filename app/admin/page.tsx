@@ -31,7 +31,7 @@ export default async function Admin({ searchParams }: PageProps<"/admin">) {
   const adminMsg = ADMIN_MSG[String(sp.admin)] ?? null;
 
   const supabase = await supabaseServer();
-  const [settings, catalog, ordersRes, subsRes, adminsRes] = await Promise.all([
+  const [settings, catalog, ordersRes, subsRes, adminsRes, votesRes] = await Promise.all([
     getSettings(),
     getCatalog(true),
     supabase
@@ -41,11 +41,15 @@ export default async function Admin({ searchParams }: PageProps<"/admin">) {
       .limit(500),
     supabase.from("subscribers").select("email, source, created_at").order("created_at", { ascending: false }),
     supabase.rpc("admin_list"),
+    supabase.rpc("next_vote_counts"),
   ]);
   const allOrders = ordersRes.data ?? [];
   const orders = filter === "all" ? allOrders : allOrders.filter((o) => o.status === filter);
   const subs = subsRes.data ?? [];
   const admins = (adminsRes.data ?? []) as { user_id: string; email: string; is_me: boolean }[];
+  const votes = new Map(
+    ((votesRes.data ?? []) as { product_slug: string; likes: number; dislikes: number }[]).map((v) => [v.product_slug, v]),
+  );
   const count = (st: string) => allOrders.filter((o) => o.status === st).length;
   const openOrders = count("new");
   const live = allOrders.filter((o) => o.status !== "cancelled");
@@ -164,6 +168,14 @@ export default async function Admin({ searchParams }: PageProps<"/admin">) {
                 <span>
                   {p.code} · {p.name} [{p.color}]
                   <br />
+                  {p.status === "next" && (
+                    <>
+                      <span className="dim">
+                        NEXT votes: 👍 {votes.get(p.slug)?.likes ?? 0} · 👎 {votes.get(p.slug)?.dislikes ?? 0}
+                      </span>
+                      <br />
+                    </>
+                  )}
                   <Link href={`/admin/products/${p.slug}`} className="link">
                     Edit details &amp; images
                   </Link>
@@ -197,6 +209,7 @@ export default async function Admin({ searchParams }: PageProps<"/admin">) {
                   <option value="available">Available</option>
                   <option value="sold_out">Sold out</option>
                   <option value="hidden">Hidden</option>
+                  <option value="next">Next (blurred teaser)</option>
                 </select>
               </label>
               <button className="btn small">Save</button>

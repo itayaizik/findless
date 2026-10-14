@@ -17,7 +17,7 @@ function refresh() {
   revalidatePath("/", "layout");
 }
 
-const STATUSES = ["available", "sold_out", "hidden"];
+const STATUSES = ["available", "sold_out", "hidden", "next"];
 
 function parsePrice(raw: FormDataEntryValue | null) {
   const v = String(raw ?? "").trim();

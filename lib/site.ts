@@ -6,7 +6,7 @@ import { supabasePublic } from "./supabase/public";
 import { products as baseProducts, defaultImages, type Product } from "./products";
 
 export type Mode = "waitlist" | "open";
-export type Status = "available" | "sold_out" | "hidden";
+export type Status = "available" | "sold_out" | "hidden" | "next";
 export type CatalogItem = Product & {
   price: number | null;
   status: Status;
@@ -84,9 +84,18 @@ function merge(p: Product, r: Row | undefined, i: number): CatalogItem & { sort:
   };
 }
 
+// The shop: everything except hidden items and "next" teasers (admins can ask for all).
 export const getCatalog = cache(async (includeHidden = false): Promise<CatalogItem[]> => {
   const all = await loadCatalog();
-  return all.filter((p) => includeHidden || p.status !== "hidden").map(({ sort: _sort, ...p }) => p);
+  return all
+    .filter((p) => includeHidden || (p.status !== "hidden" && p.status !== "next"))
+    .map(({ sort: _sort, ...p }) => p);
+});
+
+// Upcoming pieces shown blurred in the NEXT section.
+export const getNext = cache(async (): Promise<CatalogItem[]> => {
+  const all = await loadCatalog();
+  return all.filter((p) => p.status === "next").map(({ sort: _sort, ...p }) => p);
 });
 
 // What's in the drop: everything, or just one product when the admin picked a single drop.

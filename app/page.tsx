@@ -3,7 +3,9 @@ import { Stamp } from "@/components/logos";
 import Countdown from "@/components/Countdown";
 import SignupForm from "@/components/SignupForm";
 import ProductCard from "@/components/ProductCard";
-import { getDrop, getSettings, getShopAccess } from "@/lib/site";
+import { getDrop, getNext, getSettings, getShopAccess } from "@/lib/site";
+import NextCard from "@/components/NextCard";
+import Reveal from "@/components/Reveal";
 import { fill, getT } from "@/lib/i18n";
 
 export default async function Home() {
@@ -34,6 +36,8 @@ export default async function Home() {
       )}
 
       {access.visible && <Shop />}
+      <Next />
+      <Reveal />
     </>
   );
 }
@@ -49,6 +53,25 @@ async function Shop() {
       <div className={items.length === 1 ? "grid single" : "grid"}>
         {items.map((p, i) => (
           <ProductCard key={p.slug} p={p} t={t} eager={i < 4} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+async function Next() {
+  const [items, { t }] = await Promise.all([getNext(), getT()]);
+  if (items.length === 0) return null;
+  const labels = { nextLike: t.nextLike, nextDislike: t.nextDislike, nextThanks: t.nextThanks, nextHint: t.nextHint };
+  return (
+    <section id="next" aria-labelledby="next-h" className="next">
+      <div className="section-head">
+        <h2 id="next-h">{t.nextHead}</h2>
+        <span className="muted">{t.nextNote}</span>
+      </div>
+      <div className="grid next-grid">
+        {items.map((p) => (
+          <NextCard key={p.slug} slug={p.slug} name={p.name} color={p.color} image={p.images[0]} t={labels} />
         ))}
       </div>
     </section>

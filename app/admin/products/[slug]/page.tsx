@@ -48,6 +48,7 @@ export default async function EditProduct({ params }: PageProps<"/admin/products
               <option value="available">Available</option>
               <option value="sold_out">Sold out</option>
               <option value="hidden">Hidden</option>
+                  <option value="next">Next (blurred teaser)</option>
             </select>
           </label>
         </div>

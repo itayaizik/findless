@@ -6,7 +6,7 @@ export default function ProductCard({ p, t, eager }: { p: CatalogItem; t: Dict; 
   const [front, back] = p.images;
   const soldOut = isSoldOut(p);
   return (
-    <Link href={`/product/${p.slug}`} className={`card${soldOut ? " sold" : ""}`}>
+    <Link href={`/product/${p.slug}`} className={`card${soldOut ? " sold" : ""}`} data-reveal>
       <div className="img">
         {front && (
           <img className="front" src={front} alt={`${p.name} ${p.color}, ${t.front}`} loading={eager ? "eager" : "lazy"} decoding="async" />
