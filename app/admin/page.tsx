@@ -132,6 +132,13 @@ export default async function Admin({ searchParams }: PageProps<"/admin">) {
             />
           </label>
           <label className="field">
+            <span>Home page title color</span>
+            <select name="hero_text" defaultValue={settings.heroText}>
+              <option value="cream">Cream (brand color)</option>
+              <option value="white">White</option>
+            </select>
+          </label>
+          <label className="field">
             <span>Drop date (Israel time, empty = TBA)</span>
             <input type="datetime-local" name="drop_at" defaultValue={isoToIsraelLocal(settings.dropAt)} />
           </label>

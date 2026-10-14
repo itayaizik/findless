@@ -7,7 +7,7 @@ import { getDrop, getSettings, getShopAccess } from "@/lib/site";
 import { fill, getT } from "@/lib/i18n";
 
 export default async function Home() {
-  const [{ dropAt, heroLogo }, access, { t }] = await Promise.all([getSettings(), getShopAccess(), getT()]);
+  const [{ dropAt, heroLogo, heroText }, access, { t }] = await Promise.all([getSettings(), getShopAccess(), getT()]);
   const open = access.mode === "open";
   const logo =
     heroLogo === "stamp" ? <Stamp className="stamp" /> : <ModelLogo project={heroLogo} className="stamp" />;
@@ -15,7 +15,7 @@ export default async function Home() {
   return (
     <>
       {open ? (
-        <section className="hero hero-open">
+        <section className={`hero hero-open${heroText === "white" ? " hero-white" : ""}`}>
           {logo}
           <h1>{t.heroOpen}</h1>
           <p className="tagline">{t.tagline}</p>
@@ -24,7 +24,7 @@ export default async function Home() {
           </a>
         </section>
       ) : (
-        <section className="hero">
+        <section className={`hero${heroText === "white" ? " hero-white" : ""}`}>
           {logo}
           <h1>{t.heroSoon}</h1>
           <Countdown dropAt={dropAt} />

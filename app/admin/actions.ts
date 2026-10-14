@@ -35,10 +35,11 @@ export async function saveSettings(form: FormData) {
   const featured_slug = String(form.get("featured") ?? "") || null;
   const custom = String(form.get("hero_logo_custom") ?? "").trim();
   const hero_logo = custom || String(form.get("hero_logo") ?? "stamp");
+  const hero_text = form.get("hero_text") === "white" ? "white" : "cream";
   if (!HERO_LOGO_RE.test(hero_logo)) throw new Error("Bad logo id (it looks like e_97b1b0db855ae00695cd)");
   const { error } = await supabase
     .from("site_settings")
-    .update({ mode, drop_at, featured_slug, hero_logo, updated_at: new Date().toISOString() })
+    .update({ mode, drop_at, featured_slug, hero_logo, hero_text, updated_at: new Date().toISOString() })
     .eq("id", 1);
   if (error) throw new Error(error.message);
   refresh();
