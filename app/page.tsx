@@ -71,7 +71,7 @@ async function Next() {
       </div>
       <div className="grid next-grid">
         {items.map((p) => (
-          <NextCard key={p.slug} slug={p.slug} name={p.name} color={p.color} image={p.images[0]} t={labels} />
+          <NextCard key={p.slug} slug={p.slug} name={p.name} color={p.color} image={p.images[0]} clear={p.images[1]} t={labels} />
         ))}
       </div>
     </section>

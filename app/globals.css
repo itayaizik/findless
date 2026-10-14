@@ -412,7 +412,7 @@ select option { background: var(--bg); }
 }
 .hero-white h1, .hero-white .countdown b { color: #fff; }
 
-/* NEXT: blurred upcoming pieces with like / dislike */
+/* NEXT: blurred upcoming pieces. Hover or tap shows the piece clearly, then like / dislike. */
 .next { padding-top: 24px; }
 .next .section-head h2 { font-size: inherit; font-weight: inherit; margin: 0; letter-spacing: inherit; }
 .next-card { position: relative; }
@@ -420,35 +420,48 @@ select option { background: var(--bg); }
   position: relative; display: block; width: 100%; aspect-ratio: 4 / 5; padding: 0; border: 0; cursor: pointer;
   overflow: hidden; background: var(--tile); color: var(--fg);
 }
-.next-img img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.08); filter: grayscale(0.2) brightness(0.8); transition: transform 0.8s ease, filter 0.5s ease; }
+.next-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.next-img img.blur { transform: scale(1.08); filter: grayscale(0.2) brightness(0.8); transition: opacity 0.5s ease; }
+.next-img img.clear { object-fit: contain; opacity: 0; transition: opacity 0.5s ease, transform 0.8s ease; transform: scale(1.03); }
 .next-q {
   position: absolute; inset: 0; display: grid; place-items: center;
   font-size: clamp(2rem, 6vw, 3.5rem); color: rgba(230, 220, 198, 0.85); transition: opacity 0.3s ease;
 }
 .next-vote {
   position: absolute; left: 0; right: 0; top: 0; aspect-ratio: 4 / 5;
-  display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px;
+  display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end; align-content: flex-end; gap: 8px;
+  padding: 14px; background: linear-gradient(to top, rgba(10, 10, 10, 0.75), transparent 38%);
   opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
 }
 .next-vote button {
-  display: inline-flex; align-items: center; gap: 8px; min-width: 60%; justify-content: center;
-  padding: 10px 14px; background: rgba(10, 10, 10, 0.72); color: var(--fg);
-  border: 1px solid var(--fg); font: inherit; font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  display: inline-flex; align-items: center; gap: 8px; justify-content: center; flex: 1 1 0; min-width: 0;
+  padding: 10px 8px; background: rgba(10, 10, 10, 0.72); color: var(--fg);
+  border: 1px solid var(--fg); font: inherit; font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;
+  white-space: nowrap; transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 .next-vote button.down svg { transform: rotate(180deg); }
 .next-vote button:hover:not(:disabled), .next-vote button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
 .next-vote button:active { transform: scale(0.96); }
 .next-card.open .next-vote, .next-card:focus-within .next-vote { opacity: 1; pointer-events: auto; }
 .next-card.open .next-q, .next-card:focus-within .next-q { opacity: 0; }
-.next-card.open .next-img img, .next-card:focus-within .next-img img { transform: scale(1.14); filter: grayscale(0.2) brightness(0.55); }
+.next-card.open .next-img img.clear, .next-card:focus-within .next-img img.clear { opacity: 1; transform: none; }
 @media (hover: hover) {
   .next-card:hover .next-vote { opacity: 1; pointer-events: auto; }
   .next-card:hover .next-q { opacity: 0; }
-  .next-card:hover .next-img img { transform: scale(1.14); filter: grayscale(0.2) brightness(0.55); }
+  .next-card:hover .next-img img.clear { opacity: 1; transform: none; }
 }
 .next-card .meta { margin-top: 12px; text-align: center; display: grid; gap: 2px; }
 .next-card.voted .next-img { outline: 1px solid var(--line); }
+/* phones: the item stays fully visible and the buttons open up under it */
+@media (max-width: 700px) {
+  .next-vote {
+    position: static; aspect-ratio: auto; background: none; padding: 0; gap: 6px;
+    flex-direction: column; align-items: stretch; max-height: 0; overflow: hidden;
+    transition: opacity 0.3s ease, max-height 0.3s ease, margin 0.3s ease;
+  }
+  .next-vote button { flex: none; width: 100%; padding: 9px 6px; font-size: 0.625rem; }
+  .next-card.open .next-vote, .next-card:focus-within .next-vote { max-height: 120px; margin-top: 8px; }
+}
 
 /* motion: hero entrance, scroll reveal, card hover */
 @media (prefers-reduced-motion: no-preference) {

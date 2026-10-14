@@ -20,17 +20,21 @@ export default function NextCard({
   name,
   color,
   image,
+  clear,
   t,
 }: {
   slug: string;
   name: string;
   color: string;
   image: string;
+  clear?: string;
   t: Pick<Dict, "nextLike" | "nextDislike" | "nextThanks" | "nextHint">;
 }) {
   const [open, setOpen] = useState(false);
   const [vote, setVote] = useState<Vote>(0);
   const [busy, setBusy] = useState(false);
+  // The clear photo only loads once someone hovers or taps, so the page stays light.
+  const [seen, setSeen] = useState(false);
 
   useEffect(() => setVote(readVotes()[slug] ?? 0), [slug]);
 
@@ -62,10 +66,22 @@ export default function NextCard({
     <div
       className={`next-card${open ? " open" : ""}${vote ? " voted" : ""}`}
       data-reveal
+      onMouseEnter={() => setSeen(true)}
+      onFocus={() => setSeen(true)}
       onMouseLeave={() => setOpen(false)}
     >
-      <button type="button" className="next-img" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-label={`${name} ${color}. ${t.nextHint}`}>
-        <img src={image} alt="" loading="lazy" decoding="async" />
+      <button
+        type="button"
+        className="next-img"
+        onClick={() => {
+          setSeen(true);
+          setOpen((o) => !o);
+        }}
+        aria-expanded={open}
+        aria-label={`${name} ${color}. ${t.nextHint}`}
+      >
+        <img className="blur" src={image} alt="" loading="lazy" decoding="async" />
+        {clear && seen && <img className="clear" src={clear} alt={`${name} ${color}`} decoding="async" />}
         <span className="next-q" aria-hidden="true">?</span>
       </button>
       <div className="next-vote" role="group" aria-label={`${name} ${color}`}>
